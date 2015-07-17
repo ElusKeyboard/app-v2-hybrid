@@ -1,0 +1,19 @@
+doctype
+html
+	head
+		meta(charset="utf-8")
+		meta(name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width")
+
+		link(href="css/ionic.app.css" rel="stylesheet")
+		script(src="lib/ionic/js/ionic.bundle.js")
+		script(src="cordova.js")
+
+		- var sources = ['app', 'routes']
+		- sources.push('controllers/setup', 'controllers/tables')
+
+		- for (var i = 0; i < sources.length; i++) {
+			script(src='js/' + sources[i] + '.js')
+		- }
+	body(ng-app="orderchef")
+		ion-nav-bar
+		ion-nav-view
