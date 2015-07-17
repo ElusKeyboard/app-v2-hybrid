@@ -6,17 +6,17 @@ app.config(function($stateProvider, $urlRouterProvider) {
 	$stateProvider
 	.state('setup', {
 		url: '/setup',
-		templateUrl: '/views/setup.html',
+		templateUrl: 'views/setup.html',
 		controller: 'SetupCtrl'
 	})
 	.state('tables', {
 		url: '/tables',
-		templateUrl: '/views/tables.html',
-		// controller: 'TablesCtrl'
+		templateUrl: 'views/tables.html',
+		controller: 'TablesCtrl'
 	})
 	.state('orders', {
 		url: '/table/:table_id',
-		templateUrl: '/views/orders.html',
+		templateUrl: 'views/orders.html',
 		controller: 'OrdersCtrl',
 		resolve: {
 			OrderGroup: function ($q, $http, $stateParams) {

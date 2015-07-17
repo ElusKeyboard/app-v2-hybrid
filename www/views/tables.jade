@@ -1,0 +1,13 @@
+ion-view(view-title="Open Tables")
+	ion-nav-buttons(side="primary")
+		button.button.button-energized(ng-click="popover.show($event)") Open Table
+
+	ion-content: .card(ng-repeat="table in openTables" ui-sref="orders({table_id: table.id})" direction="forward")
+		.item.item-divider
+			{{ table.name }}
+		.item.item-text-wrap
+			| Table number: {{ table.table_number }}
+			br
+			| Location: {{ table.location }}
+			br
+			| Type: {{ table.table_type.name }}

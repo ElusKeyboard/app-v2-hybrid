@@ -9,7 +9,8 @@ html
 		script(src="cordova.js")
 
 		- var sources = ['app', 'routes']
-		- sources.push('controllers/setup', 'controllers/tables')
+		- sources.push('services/matcher')
+		- sources.push('controllers/setup', 'controllers/tables', 'controllers/orders')
 
 		- for (var i = 0; i < sources.length; i++) {
 			script(src='js/' + sources[i] + '.js')

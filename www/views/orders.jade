@@ -1,0 +1,41 @@
+ion-view(view-title="Orders")
+	ion-nav-buttons(side="primary")
+		button.button.back-button.button-clear(ui-sref="tables" direction="backwards")
+			i.icon.ion-ios-arrow-back
+			|  Tables
+	ion-nav-buttons(side="secondary")
+		button.button.button-energized(ng-click="addOrder()") Add Order
+
+	ion-content
+		.card
+			.item.item-divider
+				strong Order Information
+			.item.item-input
+				span.input-label Customer Name
+				input(type="text" placeholder="Customer Name")
+			.item.item-input
+				span.input-label Telephone Number
+				input(type="tel" placeholder="Telephone Number")
+			.item.item-input
+				span.input-label Postcode
+				input(type="text" placeholder="Postcode")
+
+		.padding: .button-bar
+			button.button.button-block.button-positive Bill
+			button.button.button-block Discounts
+
+		br
+
+		.list(ng-repeat="order in orderItems")
+			.item.item-divider
+				{{ order.type.name }}
+			.item.item-text-wrap(style="padding: 0;")
+				ion-list
+					ion-item(ng-repeat="item in order.items" ng-click="editItem(item)")
+						strong {{ item.item.name }}
+						span.item-note £1.00
+						br
+						div(ng-repeat="modifier in item.modifiers")
+							| {{ modifier.group.name }} - {{ modifier.modifier.name }}
+							span.item-note £{{ modifier.modifier.price.toFixed(2) }}
+			button.button.button-light.button-block(ng-click="addItem(order)") Add Item
