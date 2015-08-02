@@ -19,6 +19,7 @@ app.run(function($rootScope, $ionicPlatform, $state, datapack) {
 	$rootScope.venue_name = localStorage['venue_name'] || '';
 	$rootScope.ip_address = localStorage['setup_ip'] || '';
 	$rootScope.is_setup = !!localStorage['setup_ip'];
+	$rootScope.datapack = datapack;
 
 	$ionicPlatform.ready(function() {
 		if (!$rootScope.is_setup || datapack.data == null || !datapack.data.last_refreshed || (new Date(datapack.data.last_refreshed)).getTime() - Date.now() > 86400) {
@@ -27,7 +28,7 @@ app.run(function($rootScope, $ionicPlatform, $state, datapack) {
 
 		// Hide the accessory bar by default
 		if (window.cordova && window.cordova.plugins.Keyboard) {
-			cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+			// cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
 		}
 
 		if (window.StatusBar) {

@@ -2,7 +2,7 @@ ion-view(view-title="Open Tables")
 	ion-nav-buttons(side="primary")
 		button.button.button-energized(ng-click="popover.show($event)") Open Table
 
-	ion-content: .card(ng-repeat="table in openTables" ui-sref="orders({table_id: table.id})" direction="forward")
+	ion-content: .card(ng-repeat="table in openTables" ui-sref="tabs.orders({table_id: table.id})" direction="forward")
 		.item.item-divider
 			{{ table.name }}
 		.item.item-text-wrap

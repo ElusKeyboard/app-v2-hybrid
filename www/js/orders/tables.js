@@ -21,7 +21,7 @@ app.controller('TablesCtrl', function ($scope, $http, $ionicPopover, datapack) {
 	}
 	tableTypes = null;
 
-	$ionicPopover.fromTemplateUrl('views/openTablePopover.html', {
+	$ionicPopover.fromTemplateUrl('views/orders/openTablePopover.html', {
 		scope: $scope
 	}).then(function (popover) {
 		$scope.popover = popover;

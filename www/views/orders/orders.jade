@@ -1,10 +1,10 @@
 ion-view(view-title="Orders")
 	ion-nav-buttons(side="primary")
-		button.button.back-button.button-clear(ui-sref="tables" direction="backwards")
+		button.button.back-button.button-clear(ui-sref="tabs.tables" direction="backwards")
 			i.icon.ion-ios-arrow-back
 			|  Tables
 	ion-nav-buttons(side="secondary")
-		button.button.button-energized(ng-click="addOrder()") Add Order
+		button.button.button-energized(ng-click="showAddOrder()") Add Order
 
 	ion-content
 		.card
@@ -29,13 +29,13 @@ ion-view(view-title="Orders")
 		.list(ng-repeat="order in orderItems")
 			.item.item-divider
 				{{ order.type.name }}
-			.item.item-text-wrap(style="padding: 0;")
+			.item.item-text-wrap(style="padding: 0;" ng-if="order.items.length > 0")
 				ion-list
-					ion-item(ng-repeat="item in order.items" ng-click="editItem(item)")
+					ion-item(ng-repeat="item in order.items" ng-click="showEditItem(item)")
 						strong {{ item.item.name }}
 						span.item-note £1.00
 						br
 						div(ng-repeat="modifier in item.modifiers")
 							| {{ modifier.group.name }} - {{ modifier.modifier.name }}
 							span.item-note £{{ modifier.modifier.price.toFixed(2) }}
-			button.button.button-light.button-block(ng-click="addItem(order)") Add Item
+			button.button.button-light.button-block(ng-click="showAddItem(order)") Add Item
