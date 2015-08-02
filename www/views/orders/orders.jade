@@ -1,41 +1,39 @@
-ion-view(view-title="Orders" cache-view="false")
+ion-view(view-title="{{ table.name }}" cache-view="false")
 	ion-nav-buttons(side="primary")
 		button.button.back-button.button-clear(ui-sref="tabs.tables" direction="backwards")
 			i.icon.ion-ios-arrow-back
 			|  Tables
 	ion-nav-buttons(side="secondary")
-		button.button.button-energized(ng-click="showAddOrder()") Add Order
+		button.button.button-energized(ng-click="showAddOrder()") Add Course
 
 	ion-content
 		.card
 			.item.item-divider
-				strong Order Information
+				strong Customer Information
 			.item.item-input
 				span.input-label Customer Name
 				input(type="text" placeholder="Customer Name")
-			.item.item-input
-				span.input-label Telephone Number
-				input(type="tel" placeholder="Telephone Number")
-			.item.item-input
-				span.input-label Postcode
-				input(type="text" placeholder="Postcode")
 
-		.padding: .button-bar
-			button.button.button-block.button-positive Bill
+		.row: .col: .button-bar
+			button.button.button-block.button-positive Final Bill
 			button.button.button-block Discounts
 
+		.row: .col(style="text-align: center;"): h4 Total
 		br
 
 		.list(ng-repeat="order in orderItems")
-			.item.item-divider
-				{{ order.type.name }}
+			.item.item-divider: a(ng-click="selectOrderGroup(order)") {{ order.type.name }} &nbsp;
+				i.icon.ion-ios-information-outline
 			.item.item-text-wrap(style="padding: 0;" ng-if="order.items.length > 0")
 				ion-list
-					ion-item(ng-repeat="item in order.items" ng-click="showEditItem(item)")
+					ion-item(ng-repeat="item in order.items" ng-click="showEditItem(item.id)")
 						strong {{ item.item.name }}
-						span.item-note £1.00
+						strong(ng-if="!item.item") n/a
+						span.item-note £{{ item.item.price.toFixed(2) }}
 						br
 						div(ng-repeat="modifier in item.modifiers")
 							| {{ modifier.group.name }} - {{ modifier.modifier.name }}
 							span.item-note £{{ modifier.modifier.price.toFixed(2) }}
-			button.button.button-light.button-block(ng-click="showAddItem(order)") Add Item
+			.row: .col: button.button.button-light.button-block(ng-click="showAddItem(order)")
+				i.icon.ion-ios-plus-empty
+				| &nbsp;Add Item

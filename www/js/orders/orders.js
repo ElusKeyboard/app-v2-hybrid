@@ -1,9 +1,12 @@
 var app = angular.module('orderchef');
 
-app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, datapack, dataMatcher, $ionicPopup, OrderItemService) {
+app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, datapack, dataMatcher, $ionicPopup, OrderItemService, $ionicActionSheet) {
 	$scope.group = OrderGroup;
+	OrderItemService.parent = $scope;
 
-	$scope.refresh = function () {
+	$scope.refresh = function (cb) {
+		if (typeof cb != 'function') cb = function (){}
+
 		$http.get('/order-group/' + OrderGroup.id + '/orders').success(function (orders) {
 			$scope.orderItems = orders;
 
@@ -19,6 +22,8 @@ app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, d
 					});
 				});
 			});
+
+			cb();
 		});
 	}
 
@@ -45,19 +50,93 @@ app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, d
 		});
 	}
 
+	$scope.selectOrderGroup = function (group) {
+		$ionicActionSheet.show({
+			buttons: [{
+				text: 'Re-Print'
+			}, {
+				text: 'Submit'
+			}],
+			destructiveText: 'Remove Order',
+			cancelText: 'Cancel'
+		});
+	}
+
 	// modal stuff
 
-	$scope.showEditItem = function (item) {
-		$scope.editedItem = item;
-		$scope.itemModal.show();
+	$scope.showEditItem = function (item_id) {
+		// order_item_id = item_id;
+		for (var oi = 0; oi < $scope.orderItems.length; oi++) {
+			var order_group = $scope.orderItems[oi];
+
+			for (var i = 0; i < order_group.items.length; i++) {
+				var item = order_group.items[i];
+
+				if (item.id == item_id) {
+					if (!item.item) {
+						$ionicPopup.alert({
+							title: 'Order Item Invalid',
+							template: 'The order item either does not exist or is unavailable.'
+						});
+
+						return;
+					}
+
+					item.item.modifier_objects = [];
+					item.item.modifiers.forEach(function (modifier_id) {
+						item.item.modifier_objects.push(JSON.parse(JSON.stringify(dataMatcher.getModifierGroup(modifier_id))));
+					});
+
+					item.item.modifier_objects.forEach(function (modGroup) {
+						for (var mi = 0; mi < item.modifiers.length; mi++) {
+							if (item.modifiers[mi].modifier_group_id != modGroup.id) continue;
+
+							modGroup.modifiers.forEach(function (mod) {
+								mod.selected = item.modifiers[mi].modifier_id == mod.id
+							});
+						}
+					})
+
+					$scope.editedItem = item;
+					$scope.itemModal.show();
+
+					return;
+				}
+			}
+		}
+
+		$ionicPopup.alert({
+			title: 'Could not find item',
+			template: ''
+		});
 	}
 	$scope.closeEditItem = function () {
 		$scope.editedItem = null;
 		$scope.itemModal.hide();
+
+		$scope.getItemModal().then(function (modal) {
+			$scope.itemModal.remove();
+			$scope.itemModal = modal;
+		});
 	}
 
-	$scope.showAddItem = function (orderGroup) {
-		OrderItemService.showModal(orderGroup);
+	$scope.removeOrderItem = function (item) {
+		console.log(item);
+		$http.delete('/order/' + item.order_id + '/item/' + item.id)
+		.success(function () {
+			$scope.closeEditItem();
+			$scope.refresh();
+		})
+		.error(function (err) {
+			$ionicPopup.alert({
+				title: 'Could not delete item',
+				template: err
+			})
+		})
+	}
+
+	$scope.showAddItem = function (order) {
+		OrderItemService.showModal(order);
 	}
 
 	$scope.showAddOrder = function () {
@@ -67,10 +146,14 @@ app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, d
 		$scope.addOrderModal.hide();
 	}
 
-	$ionicModal.fromTemplateUrl('views/orders/itemModal.html', {
-		scope: $scope,
-		animation: 'slide-in-up'
-	}).then(function (modal) {
+	$scope.getItemModal = function () {
+		return $ionicModal.fromTemplateUrl('views/orders/itemModal.html', {
+			scope: $scope,
+			animation: 'slide-in-up'
+		});
+	}
+
+	$scope.getItemModal().then(function (modal) {
 		$scope.itemModal = modal;
 	});
 
@@ -87,9 +170,9 @@ app.service('OrderItemService', function ($ionicModal, $http, $rootScope, datapa
 	this.modal = null;
 	this.scope = $rootScope.$new();
 
-	this.showModal = function (orderGroup) {
-		this.scope.orderGroup = orderGroup;
-		this.modal.show();
+	this.showModal = function (order) {
+		self.scope.order = order;
+		self.modal.show();
 	}
 
 	this.scope.categories = [];
@@ -97,6 +180,19 @@ app.service('OrderItemService', function ($ionicModal, $http, $rootScope, datapa
 		self.modal.hide();
 	}
 	this.scope.addItem = function (category, item) {
+		$http.post('/order/' + self.scope.order.id + '/items', {
+			item_id: item.item.id,
+			order_id: self.scope.order.id
+		}).success(function (order_item) {
+			self.parent.refresh(function () {
+				self.parent.showEditItem(order_item.id);
+			});
+		}).error(function (err) {
+			$ionicPopup.alert({
+				title: 'Cannot add item to order!',
+				template: err
+			});
+		});
 	}
 
 	datapack.data.categories.forEach(function (category) {

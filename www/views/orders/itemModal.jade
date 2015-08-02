@@ -1,6 +1,24 @@
 ion-modal-view
 	ion-header-bar
-		button.button(ng-click="closeEditItem()") Close
-		h1.title Edit Item
+		h1.title {{ editedItem.item.name }}
 	ion-content
-		pre: code {{ editedItem }}
+		ion-list
+			label.item.item-input.item-stacked-label
+				span.input-label Item Notes
+				textarea(placeholder="notes" ng-model="editedItem.notes")
+
+		.row: .col(style=""): h4 Modifiers
+
+		ion-list
+			div(ng-repeat="modifier_group in editedItem.item.modifier_objects")
+				ion-item.item-divider {{ modifier_group.name }}
+					span(ng-if="modifier_group.choice_required") &nbsp;(required)
+				ion-item.item-icon-right(ng-repeat="modifier in modifier_group.modifiers" ng-click="addItem(category, item)") {{ modifier.name }}
+					span.item-note £{{ modifier.price.toFixed(2) }}
+					i.icon.ion-ios-checkmark-empty.positive(ng-if="modifier.selected")
+
+		.row: .col: button.button.button-assertive.button-block(ng-click="removeOrderItem(editedItem)")
+			i.icon.ion-ios-trash-outline
+			| &nbsp;Remove Item
+
+	ion-footer-bar.bar-balanced(ng-click="closeEditItem()"): .title Save

@@ -1,9 +1,10 @@
 ion-modal-view
 	ion-header-bar
-		button.button(ng-click="closeModal()") Close
 		h1.title Add Item
 	ion-content
 		ion-list
 			div(ng-repeat="category in categories")
 				ion-item.item-divider {{ category.category.name }}
 				ion-item(ng-repeat="item in category.items" ng-click="addItem(category, item)") {{ item.item.name }}
+
+	ion-footer-bar.bar-calm(ng-click="closeModal()"): .title Done

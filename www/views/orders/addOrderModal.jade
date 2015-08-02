@@ -1,7 +1,7 @@
 ion-modal-view
 	ion-header-bar
 		button.button(ng-click="hideAddOrder()") Close
-		h1.title Add Order
+		h1.title Add Course
 	ion-content
 		ion-list
 			ion-item(ng-repeat="orderType in datapack.data.order_types" ng-click="addOrder(orderType)") {{ orderType.name }}

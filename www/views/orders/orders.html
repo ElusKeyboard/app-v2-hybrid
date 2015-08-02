@@ -1,40 +1,45 @@
 
-<ion-view view-title="Orders" cache-view="false">
+<ion-view view-title="{{ table.name }}" cache-view="false">
   <ion-nav-buttons side="primary">
     <button ui-sref="tabs.tables" direction="backwards" class="button back-button button-clear"><i class="icon ion-ios-arrow-back"></i> Tables</button>
   </ion-nav-buttons>
   <ion-nav-buttons side="secondary">
-    <button ng-click="showAddOrder()" class="button button-energized">Add Order</button>
+    <button ng-click="showAddOrder()" class="button button-energized">Add Course</button>
   </ion-nav-buttons>
   <ion-content>
     <div class="card">
-      <div class="item item-divider"><strong>Order Information</strong></div>
+      <div class="item item-divider"><strong>Customer Information</strong></div>
       <div class="item item-input"><span class="input-label">Customer Name</span>
         <input type="text" placeholder="Customer Name"/>
       </div>
-      <div class="item item-input"><span class="input-label">Telephone Number</span>
-        <input type="tel" placeholder="Telephone Number"/>
-      </div>
-      <div class="item item-input"><span class="input-label">Postcode</span>
-        <input type="text" placeholder="Postcode"/>
+    </div>
+    <div class="row">
+      <div class="col">
+        <div class="button-bar">
+          <button class="button button-block button-positive">Final Bill</button>
+          <button class="button button-block">Discounts</button>
+        </div>
       </div>
     </div>
-    <div class="padding">
-      <div class="button-bar">
-        <button class="button button-block button-positive">Bill</button>
-        <button class="button button-block">Discounts</button>
+    <div class="row">
+      <div style="text-align: center;" class="col">
+        <h4>Total</h4>
       </div>
     </div><br/>
     <div ng-repeat="order in orderItems" class="list">
-      <div class="item item-divider">{{ order.type.name }}</div>
+      <div class="item item-divider"><a ng-click="selectOrderGroup(order)">{{ order.type.name }} &nbsp;<i class="icon ion-ios-information-outline"></i></a></div>
       <div style="padding: 0;" ng-if="order.items.length &gt; 0" class="item item-text-wrap">
         <ion-list>
-          <ion-item ng-repeat="item in order.items" ng-click="showEditItem(item)"><strong>{{ item.item.name }}</strong><span class="item-note">£1.00</span><br/>
+          <ion-item ng-repeat="item in order.items" ng-click="showEditItem(item.id)"><strong>{{ item.item.name }}</strong><strong ng-if="!item.item">n/a</strong><span class="item-note">£{{ item.item.price.toFixed(2) }}</span><br/>
             <div ng-repeat="modifier in item.modifiers">{{ modifier.group.name }} - {{ modifier.modifier.name }}<span class="item-note">£{{ modifier.modifier.price.toFixed(2) }}</span></div>
           </ion-item>
         </ion-list>
       </div>
-      <button ng-click="showAddItem(order)" class="button button-light button-block">Add Item</button>
+      <div class="row">
+        <div class="col">
+          <button ng-click="showAddItem(order)" class="button button-light button-block"><i class="icon ion-ios-plus-empty"></i>&nbsp;Add Item</button>
+        </div>
+      </div>
     </div>
   </ion-content>
 </ion-view>

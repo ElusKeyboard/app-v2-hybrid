@@ -1,10 +1,32 @@
 
 <ion-modal-view>
   <ion-header-bar>
-    <button ng-click="closeEditItem()" class="button">Close</button>
-    <h1 class="title">Edit Item</h1>
+    <h1 class="title">{{ editedItem.item.name }}</h1>
   </ion-header-bar>
   <ion-content>
-    <pre><code>{{ editedItem }}</code></pre>
+    <ion-list>
+      <label class="item item-input item-stacked-label"><span class="input-label">Item Notes</span>
+        <textarea placeholder="notes" ng-model="editedItem.notes"></textarea>
+      </label>
+    </ion-list>
+    <div class="row">
+      <div style="" class="col">
+        <h4>Modifiers</h4>
+      </div>
+    </div>
+    <ion-list>
+      <div ng-repeat="modifier_group in editedItem.item.modifier_objects">
+        <ion-item class="item-divider">{{ modifier_group.name }}<span ng-if="modifier_group.choice_required">&nbsp;(required)</span></ion-item>
+        <ion-item ng-repeat="modifier in modifier_group.modifiers" ng-click="addItem(category, item)" class="item-icon-right">{{ modifier.name }}<span class="item-note">£{{ modifier.price.toFixed(2) }}</span><i ng-if="modifier.selected" class="icon ion-ios-checkmark-empty positive"></i></ion-item>
+      </div>
+    </ion-list>
+    <div class="row">
+      <div class="col">
+        <button ng-click="removeOrderItem(editedItem)" class="button button-assertive button-block"><i class="icon ion-ios-trash-outline"></i>&nbsp;Remove Item</button>
+      </div>
+    </div>
   </ion-content>
+  <ion-footer-bar ng-click="closeEditItem()" class="bar-balanced">
+    <div class="title">Save</div>
+  </ion-footer-bar>
 </ion-modal-view>

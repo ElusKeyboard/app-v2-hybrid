@@ -1,7 +1,6 @@
 
 <ion-modal-view>
   <ion-header-bar>
-    <button ng-click="closeModal()" class="button">Close</button>
     <h1 class="title">Add Item</h1>
   </ion-header-bar>
   <ion-content>
@@ -12,4 +11,7 @@
       </div>
     </ion-list>
   </ion-content>
+  <ion-footer-bar ng-click="closeModal()" class="bar-calm">
+    <div class="title">Done</div>
+  </ion-footer-bar>
 </ion-modal-view>
