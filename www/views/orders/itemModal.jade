@@ -11,9 +11,9 @@ ion-modal-view
 
 		ion-list
 			div(ng-repeat="modifier_group in editedItem.item.modifier_objects")
-				ion-item.item-divider {{ modifier_group.name }}
+				ion-item.item-divider(ng-class="{ assertive: modifier_group.error }") {{ modifier_group.name }}
 					span(ng-if="modifier_group.choice_required") &nbsp;(required)
-				ion-item.item-icon-right(ng-repeat="modifier in modifier_group.modifiers" ng-click="addItem(category, item)") {{ modifier.name }}
+				ion-item.item-icon-right(ng-repeat="modifier in modifier_group.modifiers" ng-click="selectModifierForEditedItem(modifier_group, modifier)") {{ modifier.name }}
 					span.item-note £{{ modifier.price.toFixed(2) }}
 					i.icon.ion-ios-checkmark-empty.positive(ng-if="modifier.selected")
 

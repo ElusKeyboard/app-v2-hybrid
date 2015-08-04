@@ -21,13 +21,8 @@
         </div>
       </div>
     </div>
-    <div class="row">
-      <div style="text-align: center;" class="col">
-        <h4>Total</h4>
-      </div>
-    </div><br/>
     <div ng-repeat="order in orderItems" class="list">
-      <div class="item item-divider"><a ng-click="selectOrderGroup(order)">{{ order.type.name }} &nbsp;<i class="icon ion-ios-information-outline"></i></a></div>
+      <div ng-click="selectOrderGroup(order)" class="item item-divider"><i class="icon ion-clipboard royal"></i>&nbsp; {{ order.type.name }}</div>
       <div style="padding: 0;" ng-if="order.items.length &gt; 0" class="item item-text-wrap">
         <ion-list>
           <ion-item ng-repeat="item in order.items" ng-click="showEditItem(item.id)"><strong>{{ item.item.name }}</strong><strong ng-if="!item.item">n/a</strong><span class="item-note">£{{ item.item.price.toFixed(2) }}</span><br/>

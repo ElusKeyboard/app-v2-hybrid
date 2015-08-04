@@ -18,12 +18,13 @@ ion-view(view-title="{{ table.name }}" cache-view="false")
 			button.button.button-block.button-positive Final Bill
 			button.button.button-block Discounts
 
-		.row: .col(style="text-align: center;"): h4 Total
-		br
+		//- .row: .col(style="text-align: center;"): h4 Total
+		//- br
 
 		.list(ng-repeat="order in orderItems")
-			.item.item-divider: a(ng-click="selectOrderGroup(order)") {{ order.type.name }} &nbsp;
-				i.icon.ion-ios-information-outline
+			.item.item-divider(ng-click="selectOrderGroup(order)")
+				i.icon.ion-clipboard.royal
+				| &nbsp; {{ order.type.name }}
 			.item.item-text-wrap(style="padding: 0;" ng-if="order.items.length > 0")
 				ion-list
 					ion-item(ng-repeat="item in order.items" ng-click="showEditItem(item.id)")

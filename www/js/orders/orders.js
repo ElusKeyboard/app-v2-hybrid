@@ -10,13 +10,13 @@ app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, d
 		$http.get('/order-group/' + OrderGroup.id + '/orders').success(function (orders) {
 			$scope.orderItems = orders;
 
-			$scope.orderItems.forEach(function (orderItem) {
-				orderItem.type = dataMatcher.getOrderType(orderItem.type_id);
+			orders.forEach(function (order) {
+				order.type = dataMatcher.getOrderType(order.type_id);
 
-				orderItem.items.forEach(function (item) {
-					item.item = dataMatcher.getItem(item.item_id);
+				order.items.forEach(function (orderItem) {
+					orderItem.item = dataMatcher.getItem(orderItem.item_id);
 
-					item.modifiers.forEach(function (modifier) {
+					orderItem.modifiers.forEach(function (modifier) {
 						modifier.group = dataMatcher.getModifierGroup(modifier.modifier_group_id);
 						modifier.modifier = dataMatcher.getModifier(modifier.modifier_group_id, modifier.modifier_id);
 					});
@@ -52,13 +52,40 @@ app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, d
 
 	$scope.selectOrderGroup = function (group) {
 		$ionicActionSheet.show({
+			titleText: 'Printed 25 minutes ago (at 13:25)',
 			buttons: [{
-				text: 'Re-Print'
-			}, {
-				text: 'Submit'
+				text: 'Print to Kitchens'
 			}],
 			destructiveText: 'Remove Order',
-			cancelText: 'Cancel'
+			cancelText: 'Cancel',
+			cancel: function () {
+				return true
+			},
+			buttonClicked: function (buttonIndex) {
+				return true
+			},
+			destructiveButtonClicked: function () {
+				$ionicPopup.confirm({
+					title: 'Remove Order',
+					template: 'Are you sure you want to remove this order?',
+					okText: 'Delete',
+					okType: 'button-assertive'
+				}).then(function (result) {
+					if (!result) {
+						return;
+					}
+
+					$http.delete('/order/' + group.id).success(function () {
+						$scope.refresh();
+					}).error(function () {
+						$ionicPopup.alert({
+							title: 'Could not delete order'
+						})
+					});
+				});
+
+				return true;
+			}
 		});
 	}
 
@@ -67,10 +94,10 @@ app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, d
 	$scope.showEditItem = function (item_id) {
 		// order_item_id = item_id;
 		for (var oi = 0; oi < $scope.orderItems.length; oi++) {
-			var order_group = $scope.orderItems[oi];
+			var order = $scope.orderItems[oi];
 
-			for (var i = 0; i < order_group.items.length; i++) {
-				var item = order_group.items[i];
+			for (var i = 0; i < order.items.length; i++) {
+				var item = order.items[i];
 
 				if (item.id == item_id) {
 					if (!item.item) {
@@ -82,23 +109,7 @@ app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, d
 						return;
 					}
 
-					item.item.modifier_objects = [];
-					item.item.modifiers.forEach(function (modifier_id) {
-						item.item.modifier_objects.push(JSON.parse(JSON.stringify(dataMatcher.getModifierGroup(modifier_id))));
-					});
-
-					item.item.modifier_objects.forEach(function (modGroup) {
-						for (var mi = 0; mi < item.modifiers.length; mi++) {
-							if (item.modifiers[mi].modifier_group_id != modGroup.id) continue;
-
-							modGroup.modifiers.forEach(function (mod) {
-								mod.selected = item.modifiers[mi].modifier_id == mod.id
-							});
-						}
-					})
-
-					$scope.editedItem = item;
-					$scope.itemModal.show();
+					$scope.prepareEditedItem(order, item);
 
 					return;
 				}
@@ -110,21 +121,146 @@ app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, d
 			template: ''
 		});
 	}
-	$scope.closeEditItem = function () {
-		$scope.editedItem = null;
-		$scope.itemModal.hide();
+	$scope.closeEditItem = function (save) {
+		if (typeof save == 'undefined') save = true;
 
-		$scope.getItemModal().then(function (modal) {
-			$scope.itemModal.remove();
-			$scope.itemModal = modal;
+		function cb () {
+			$scope.editedItem = null;
+			$scope.editedOrder = null;
+
+			$scope.itemModal.hide();
+			$scope.refresh();
+
+			$scope.getItemModal().then(function (modal) {
+				$scope.itemModal.remove();
+				$scope.itemModal = modal;
+			});
+		}
+
+		var requiredModifiers = [];
+		for (var i = 0; i < $scope.editedItem.item.modifier_objects.length; i++) {
+			if ($scope.editedItem.item.modifier_objects[i].error) {
+				requiredModifiers.push(' - ' + $scope.editedItem.item.modifier_objects[i].name)
+			}
+		}
+		if (requiredModifiers.length > 0) {
+			$ionicPopup.alert({
+				title: 'Required Modifiers have not been selected',
+				template: requiredModifiers.join('<br/>')
+			});
+			return;
+		}
+
+		if (save) {
+			$http.put('/order/' + $scope.editedOrder.id + '/item/' + $scope.editedItem.id, {
+				item_id: $scope.editedItem.item_id,
+				order_id: $scope.editedItem.order_id,
+				notes: $scope.editedItem.notes
+			}).error(function () {
+				$ionicPopup.alert({
+					title: 'Could not save order item notes',
+					template: ''
+				});
+			}).success(cb);
+		} else {
+			cb();
+		}
+	}
+	$scope.selectModifierForEditedItem = function (modifierGroup, modifier) {
+		var chain = [];
+
+		for (var ii = 0; ii < $scope.editedItem.modifiers.length; ii++) {
+			var mi = $scope.editedItem.modifiers[ii];
+			if (mi.modifier_group_id == modifierGroup.id) {
+				chain.push([$http.delete, '/modifier/' + mi.id]);
+			}
+		}
+
+		for (var i = 0; i < $scope.editedItem.item.modifier_objects.length; i++) {
+			var group = $scope.editedItem.item.modifier_objects[i];
+			if (group.id != modifierGroup.id) continue;
+
+			for (var x = 0; x < group.modifiers.length; x++) {
+				var mod = group.modifiers[x];
+
+				if (mod.id == modifier.id) {
+					if (mod.selected && !modifierGroup.choice_required) {
+						// deselect it
+						mod.selected = false;
+						continue;
+					}
+
+					mod.selected = true;
+
+					chain.push([$http.post, '/modifiers', {
+						modifier_group_id: modifierGroup.id,
+						modifier_id: modifier.id,
+						order_item_id: $scope.editedItem.id
+					}, function (newModifier) {
+						$scope.editedItem.modifiers.push(newModifier);
+					}]);
+
+					continue;
+				}
+
+				mod.selected = false;
+			}
+
+			$scope.checkRequiredModifierGroups();
+		}
+
+		async.eachSeries(chain, function (todo, cb) {
+			todo[0]('/order/' + $scope.editedOrder.id + '/item/' + $scope.editedItem.id + todo[1], todo.length > 2 ? todo[2] : null)
+			.success(function (data) {
+				if (todo.length > 3) todo[3](data);
+				cb();
+			}).error(function () {
+				cb();
+			});
+		});
+	}
+	$scope.prepareEditedItem = function (order, item) {
+		item.item.modifier_objects = [];
+		item.item.modifiers.forEach(function (modifier_id) {
+			item.item.modifier_objects.push(JSON.parse(JSON.stringify(dataMatcher.getModifierGroup(modifier_id))));
+		});
+
+		item.item.modifier_objects.forEach(function (modGroup) {
+			for (var mi = 0; mi < item.modifiers.length; mi++) {
+				if (item.modifiers[mi].modifier_group_id != modGroup.id) continue;
+
+				modGroup.modifiers.forEach(function (mod) {
+					mod.selected = item.modifiers[mi].modifier_id == mod.id
+				});
+			}
+		});
+
+		$scope.editedOrder = order;
+		$scope.editedItem = item;
+
+		$scope.itemModal.show();
+
+		$scope.checkRequiredModifierGroups();
+	}
+	$scope.checkRequiredModifierGroups = function () {
+		$scope.editedItem.item.modifier_objects.forEach(function (group) {
+			if (!group.choice_required) return;
+
+			// check if one choice is made
+			group.error = true;
+			for (var i = 0; i < group.modifiers.length; i++) {
+				if (group.modifiers[i].selected) {
+					group.error = false;
+					break;
+				}
+			}
 		});
 	}
 
 	$scope.removeOrderItem = function (item) {
-		console.log(item);
 		$http.delete('/order/' + item.order_id + '/item/' + item.id)
 		.success(function () {
-			$scope.closeEditItem();
+			$scope.closeEditItem(false);
 			$scope.refresh();
 		})
 		.error(function (err) {

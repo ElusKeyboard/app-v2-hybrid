@@ -16,8 +16,8 @@
     </div>
     <ion-list>
       <div ng-repeat="modifier_group in editedItem.item.modifier_objects">
-        <ion-item class="item-divider">{{ modifier_group.name }}<span ng-if="modifier_group.choice_required">&nbsp;(required)</span></ion-item>
-        <ion-item ng-repeat="modifier in modifier_group.modifiers" ng-click="addItem(category, item)" class="item-icon-right">{{ modifier.name }}<span class="item-note">£{{ modifier.price.toFixed(2) }}</span><i ng-if="modifier.selected" class="icon ion-ios-checkmark-empty positive"></i></ion-item>
+        <ion-item ng-class="{ assertive: modifier_group.error }" class="item-divider">{{ modifier_group.name }}<span ng-if="modifier_group.choice_required">&nbsp;(required)</span></ion-item>
+        <ion-item ng-repeat="modifier in modifier_group.modifiers" ng-click="selectModifierForEditedItem(modifier_group, modifier)" class="item-icon-right">{{ modifier.name }}<span class="item-note">£{{ modifier.price.toFixed(2) }}</span><i ng-if="modifier.selected" class="icon ion-ios-checkmark-empty positive"></i></ion-item>
       </div>
     </ion-list>
     <div class="row">
