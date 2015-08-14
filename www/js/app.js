@@ -1,6 +1,8 @@
 var app = angular.module('orderchef', ['ionic']);
 
-app.config(function ($httpProvider) {
+app.config(function ($httpProvider, $ionicConfigProvider) {
+	$ionicConfigProvider.views.swipeBackEnabled(false);
+
 	$httpProvider.interceptors.push(function ($q) {
 		return {
 			'request': function (config) {
@@ -28,6 +30,7 @@ app.run(function($rootScope, $ionicPlatform, $state, datapack) {
 
 		// Hide the accessory bar by default
 		if (window.cordova && window.cordova.plugins.Keyboard) {
+			cordova.plugins.Keyboard.disableScroll(true);
 			// cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
 		}
 
@@ -40,9 +43,11 @@ app.run(function($rootScope, $ionicPlatform, $state, datapack) {
 app.service('datapack', function ($q, $http, $ionicLoading) {
 	var self = this;
 
-	this.data = null;
-	if (localStorage['datapack']) {
+	try {
 		this.data = JSON.parse(localStorage['datapack']);
+		if (!this.data || typeof this.data != 'object') throw Error();
+	} catch (e) {
+		this.data = null;
 	}
 
 	this.update = function () {
@@ -53,6 +58,13 @@ app.service('datapack', function ($q, $http, $ionicLoading) {
 		var d = $q.defer();
 
 		$http.get('/datapack').success(function (data) {
+			if (typeof data != 'object') {
+				$ionicLoading.hide();
+				self.data = null;
+
+				return d.reject();
+			}
+
 			self.data = data;
 			self.data.last_refreshed = Date.now();
 			localStorage['datapack'] = JSON.stringify(data);

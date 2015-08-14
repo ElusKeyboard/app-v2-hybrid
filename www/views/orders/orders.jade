@@ -6,16 +6,17 @@ ion-view(view-title="{{ table.name }}" cache-view="false")
 	ion-nav-buttons(side="secondary")
 		button.button.button-energized(ng-click="showAddOrder()") Add Course
 
-	ion-content
-		.card
-			.item.item-divider
-				strong Customer Information
+	ion-content.has-header
+		.card(ng-form="groupInfoForm" style="margin-bottom: 0;")
+			//- .item.item-divider
+			//- 	strong Customer Information
 			.item.item-input
-				span.input-label Customer Name
-				input(type="text" placeholder="Customer Name")
+				span.input-label # Covers
+				input(type="number" ng-model="group.covers")
+		.row(style="padding-top: 0;" ng-if="!groupInfoForm.$pristine"): .col(style="padding-top: 0;"): button.button.button-block.button-balanced(ng-click="saveGroup(); groupInfoForm.$pristine = true;") Save
 
 		.row: .col: .button-bar
-			button.button.button-block.button-positive Final Bill
+			button.button.button-block.button-positive(ui-sref="tabs.orderBills({ group_id: group.id })") Bills
 			button.button.button-block Discounts
 
 		//- .row: .col(style="text-align: center;"): h4 Total
@@ -24,6 +25,9 @@ ion-view(view-title="{{ table.name }}" cache-view="false")
 		.list(ng-repeat="order in orderItems")
 			.item.item-divider(ng-click="selectOrderGroup(order)")
 				i.icon.ion-clipboard.royal
+				span(ng-if="order.printed_at")
+					| &nbsp;
+					i.icon.ion-printer.positive(ng-if="order.printed_at")
 				| &nbsp; {{ order.type.name }}
 			.item.item-text-wrap(style="padding: 0;" ng-if="order.items.length > 0")
 				ion-list
@@ -35,6 +39,6 @@ ion-view(view-title="{{ table.name }}" cache-view="false")
 						div(ng-repeat="modifier in item.modifiers")
 							| {{ modifier.group.name }} - {{ modifier.modifier.name }}
 							span.item-note £{{ modifier.modifier.price.toFixed(2) }}
-			.row: .col: button.button.button-light.button-block(ng-click="showAddItem(order)")
+			.row(ng-if="!order.printed_at"): .col: button.button.button-light.button-block(ng-click="showAddItem(order)")
 				i.icon.ion-ios-plus-empty
 				| &nbsp;Add Item

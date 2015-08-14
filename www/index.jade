@@ -5,14 +5,16 @@ html
 		meta(name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width")
 
 		link(href="css/ionic.app.css" rel="stylesheet")
+		link(href="css/style.css" rel="stylesheet")
 		script(src="lib/ionic/js/ionic.bundle.js")
 		script(src="cordova.js")
 		script(src="js/vendor/async.min.js")
+		script(src="js/vendor/moment.min.js")
 
 		- var sources = ['app', 'routes']
 		- sources.push('orders/routes', 'takeaway/routes', 'delivery/routes')
 		- sources.push('services/matcher')
-		- sources.push('setup', 'orders/tables', 'orders/orders')
+		- sources.push('setup', 'orders/tables', 'orders/orders', 'orders/bills')
 
 		- for (var i = 0; i < sources.length; i++) {
 			script(src='js/' + sources[i] + '.js')

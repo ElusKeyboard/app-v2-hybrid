@@ -36,6 +36,14 @@ app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, d
 		}
 	}
 
+	$scope.saveGroup = function () {
+		$http.put('/order-group/' + $scope.group.id, $scope.group).error(function () {
+			$ionicPopup.alert({
+				title: 'Failed to save group'
+			});
+		});
+	}
+
 	$scope.addOrder = function (order_type) {
 		$http.post('/order-group/' + $scope.group.id + '/orders', {
 			type_id: order_type.id
@@ -51,17 +59,54 @@ app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, d
 	}
 
 	$scope.selectOrderGroup = function (group) {
+		var title = 'Not Printed yet'
+		var buttons = [{
+			text: 'Print to Kitchens'
+		}]
+
+		if (group.printed_at) {
+			var printed_at = moment(group.printed_at);
+			title = 'Printed ' + printed_at.fromNow() + ' (at ' + printed_at.format('hh:mm') + ')';
+			buttons[0].text = 'Re-print to Kitchens';
+
+			buttons.push({
+				text: 'Add another item'
+			});
+		}
+
 		$ionicActionSheet.show({
-			titleText: 'Printed 25 minutes ago (at 13:25)',
-			buttons: [{
-				text: 'Print to Kitchens'
-			}],
+			titleText: title,
+			buttons: buttons,
 			destructiveText: 'Remove Order',
 			cancelText: 'Cancel',
 			cancel: function () {
 				return true
 			},
 			buttonClicked: function (buttonIndex) {
+				if (buttonIndex == 1) {
+					$scope.showAddItem(group);
+					return true;
+				}
+
+				$http.post('/order/' + group.id + '/print')
+				.success(function () {
+					group.printed_at = Date.now()
+				}).error(function (data, status) {
+					group.printed_at = Date.now()
+
+					if (status == 503) {
+						$ionicPopup.alert({
+							title: 'Some printers are not connected',
+							template: 'The receipts were not printed to the following printers:<br/> - ' + data.join('<br/> - ')
+						});
+					} else {
+						$ionicPopup.alert({
+							title: 'Could not print receipt',
+							template: 'Server error.'
+						});
+					}
+				});
+
 				return true
 			},
 			destructiveButtonClicked: function () {
@@ -80,7 +125,7 @@ app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, d
 					}).error(function () {
 						$ionicPopup.alert({
 							title: 'Could not delete order'
-						})
+						});
 					});
 				});
 
