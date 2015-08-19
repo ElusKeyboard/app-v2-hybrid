@@ -33,6 +33,8 @@ app.controller('TablesCtrl', function ($scope, $http, $ionicPopover, datapack) {
 			$scope.openTables = data;
 
 			for (var i = 0; i < data.length; i++) {
+				if (data[i].last_printed_order)
+					data[i].last_printed_order_formatted = moment(data[i].last_printed_order).fromNow()
 				for (var x = 0; x < datapack.data.tables.length; x++) {
 					if (datapack.data.tables[x].id == data[i].id) {
 						data[i].table_type = datapack.data.tables[x].table_type;
@@ -50,5 +52,9 @@ app.controller('TablesCtrl', function ($scope, $http, $ionicPopover, datapack) {
 			$scope.popover.hide();
 			$scope.refresh();
 		});
+	}
+
+	$scope.openConfig = function () {
+		window.open(localStorage['setup_ip'] + '/public/html/admin', '_system', 'location=yes');
 	}
 });

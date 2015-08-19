@@ -5,22 +5,24 @@
   </ion-nav-buttons>
   <ion-content>
     <div class="card">
+      <ion-item class="item-divider"><strong>Total paid</strong><span class="item-note">£{{ totals.paidFormatted }}</span></ion-item>
       <ion-item ng-repeat="payment_method in payment_methods">{{ payment_method.name }}<span class="item-note">£{{ payment_method.amountFormatted }}</span></ion-item>
-      <ion-item class="item-divider"><strong>Total to pay</strong><span ng-class="{ assertive: totals.unpaid &gt; 0, balanced: totals.unpaid == 0 }" class="item-note">£{{ totals.unpaid.toFixed(2) }}</span></ion-item>
+      <ion-item ng-if="totals.paidFormatted != totals.totalFormatted" class="item-divider"><span>Left to pay</span><span class="item-note assertive">£{{ totals.leftPay }}</span></ion-item>
+      <ion-item class="item-divider"><strong>Total</strong><span ng-class="{ assertive: totals.paidFormatted != totals.totalFormatted, balanced: totals.paidFormatted == totals.totalFormatted }" class="item-note">£{{ totals.totalFormatted }}</span></ion-item>
     </div>
     <ion-list>
       <ion-item class="item-divider">Bills</ion-item>
       <ion-item ng-repeat="bill in bills" ui-sref="tabs.orderBill({ bill_id: bill.id, group_id: group.id })">£{{ bill.total }}<span ng-if="!bill.paid" class="item-note assertive">UNPAID (£{{ bill.total - bill.paid_amount }} to pay)</span><span ng-if="bill.paid" class="item-note balanced">PAID</span></ion-item>
     </ion-list>
-    <div ng-if="totals.unpaid &gt; 0 || bills.length == 0" class="row">
+    <div class="row">
       <div class="col">
         <button ui-sref="tabs.newOrderBill({ group_id: group.id })" class="button button-positive button-block"><i class="icon ion-ios-plus-empty"></i>&nbsp;Create Bill</button>
       </div>
     </div>
-    <div ng-if="totals.unpaid == 0 &amp;&amp; bills.length &gt; 0" class="row">
+    <div ng-if="totals.paidTotal &gt;= totals.total" class="row">
       <div class="col"><br/>
         <p style="text-align: center;">Clear the table after the guests leave the table.</p>
-        <button ui-sref="tabs.newOrderBill({ group_id: group.id })" class="button button-balanced button-block">Clear Table</button>
+        <button ng-click="clearTable()" nav-direction="back" class="button button-balanced button-block">Clear Table</button>
       </div>
     </div>
   </ion-content>

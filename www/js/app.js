@@ -17,7 +17,10 @@ app.config(function ($httpProvider, $ionicConfigProvider) {
 	});
 });
 
-app.run(function($rootScope, $ionicPlatform, $state, datapack) {
+app.run(function($rootScope, $ionicPlatform, $state, $stateParams, datapack) {
+	$rootScope.$state = $state;
+	$rootScope.$stateParams = $stateParams;
+
 	$rootScope.venue_name = localStorage['venue_name'] || '';
 	$rootScope.ip_address = localStorage['setup_ip'] || '';
 	$rootScope.is_setup = !!localStorage['setup_ip'];

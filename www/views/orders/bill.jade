@@ -1,6 +1,6 @@
 ion-view(view-title="Bill for £{{ bill.totalFormatted }}" cache-view="false")
 	ion-nav-buttons(side="primary")
-		button.button.back-button.button-clear(ui-sref="tabs.orderBills({ group_id: group.id })" direction="backwards")
+		button.button.back-button.button-clear(ui-sref="tabs.orderBills($stateParams)" direction="backwards")
 			i.icon.ion-ios-arrow-back
 			|  Bills
 

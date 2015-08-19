@@ -1,6 +1,6 @@
 var app = angular.module('orderchef');
 
-app.controller('OrderBillsCtrl', function ($scope, $http, OrderGroup) {
+app.controller('OrderBillsCtrl', function ($scope, $http, $state, OrderGroup) {
 	$scope.group = OrderGroup;
 	$scope.bills = [];
 
@@ -20,6 +20,17 @@ app.controller('OrderBillsCtrl', function ($scope, $http, OrderGroup) {
 				p.amountFormatted = (Math.round(p.amount * 100) / 100).toFixed(2)
 			});
 
+			var totalPaid = 0;
+			for (var i = 0; i < totals.paid.length; i++) {
+				totalPaid += totals.paid[i].paid_amount;
+			}
+
+			totals.paidTotal = Math.round(totalPaid * 100) / 100;
+			totals.paidFormatted = totals.paidTotal.toFixed(2);
+			totals.total = Math.round(totals.total * 100) / 100;
+			totals.totalFormatted = totals.total.toFixed(2);
+			totals.leftPay = (Math.round((totals.total - totals.paidTotal) * 100) / 100).toFixed(2)
+
 			$scope.totals = totals;
 		});
 	});
@@ -28,6 +39,15 @@ app.controller('OrderBillsCtrl', function ($scope, $http, OrderGroup) {
 		$scope.bills = bills;
 	});
 
+	$scope.clearTable = function () {
+		$http.post('/order-group/' + OrderGroup.id + '/clear').success(function () {
+			$state.transitionTo('tabs.tables')
+		}).error(function () {
+			$ionicPopup.alert({
+				title: 'Could not clear table.'
+			})
+		});
+	}
 });
 
 app.controller('OrderBillCtrl', function ($scope, $http, OrderGroup, Bill, dataMatcher, $ionicPopup, $state) {
@@ -127,20 +147,28 @@ app.controller('OrderBillCtrl', function ($scope, $http, OrderGroup, Bill, dataM
 			}
 		}
 
-		order.allChecked = numChecked == max;
+		order.allChecked = numChecked == max && max > 0;
 	}
 
 	$scope.selectAll = function (order) {
 		var select = true;
+		var numChecked = 0;
 		if (order.allChecked == true) select = false;
 
 		for (var i = 0; i < order.items.length; i++) {
-			order.items[i].selected = select;
+			if (order.items[i].billedFor) {
+				order.items[i].selected = false;
+				continue;
+			}
 
-			if (order.items[i].billedFor) order.items[i].selected = false;
+			order.items[i].selected = select;
+			numChecked++;
 		}
 
 		order.allChecked = select;
+		if (numChecked == 0) {
+			order.allChecked = 0;
+		}
 	}
 
 	$scope.billItemsChanged = function () {

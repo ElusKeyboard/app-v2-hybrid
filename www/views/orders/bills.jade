@@ -6,11 +6,17 @@ ion-view(view-title="Order Bills" cache-view="false")
 
 	ion-content
 		.card
+			ion-item.item-divider
+				strong Total paid
+				span.item-note £{{ totals.paidFormatted }}
 			ion-item(ng-repeat="payment_method in payment_methods") {{ payment_method.name }}
 				span.item-note £{{ payment_method.amountFormatted }}
+			ion-item.item-divider(ng-if="totals.paidFormatted != totals.totalFormatted")
+				span Left to pay
+				span.item-note.assertive £{{ totals.leftPay }}
 			ion-item.item-divider
-				strong Total to pay
-				span.item-note(ng-class="{ assertive: totals.unpaid > 0, balanced: totals.unpaid == 0 }") £{{ totals.unpaid.toFixed(2) }}
+				strong Total
+				span.item-note(ng-class="{ assertive: totals.paidFormatted != totals.totalFormatted, balanced: totals.paidFormatted == totals.totalFormatted }") £{{ totals.totalFormatted }}
 
 		ion-list
 			ion-item.item-divider Bills
@@ -19,11 +25,11 @@ ion-view(view-title="Order Bills" cache-view="false")
 				span.item-note.assertive(ng-if="!bill.paid") UNPAID (£{{ bill.total - bill.paid_amount }} to pay)
 				span.item-note.balanced(ng-if="bill.paid") PAID
 
-		.row(ng-if="totals.unpaid > 0 || bills.length == 0"): .col: button.button.button-positive.button-block(ui-sref="tabs.newOrderBill({ group_id: group.id })")
+		.row: .col: button.button.button-positive.button-block(ui-sref="tabs.newOrderBill({ group_id: group.id })")
 			i.icon.ion-ios-plus-empty
 			| &nbsp;Create Bill
 
-		.row(ng-if="totals.unpaid == 0 && bills.length > 0"): .col
+		.row(ng-if="totals.paidTotal >= totals.total"): .col
 			br
 			p(style="text-align: center;") Clear the table after the guests leave the table.
-			button.button.button-balanced.button-block(ui-sref="tabs.newOrderBill({ group_id: group.id })") Clear Table
+			button.button.button-balanced.button-block(ng-click="clearTable()" nav-direction="back") Clear Table
