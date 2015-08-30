@@ -182,21 +182,21 @@ app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, d
 			});
 		}
 
-		var requiredModifiers = [];
-		for (var i = 0; i < $scope.editedItem.item.modifier_objects.length; i++) {
-			if ($scope.editedItem.item.modifier_objects[i].error) {
-				requiredModifiers.push(' - ' + $scope.editedItem.item.modifier_objects[i].name)
-			}
-		}
-		if (requiredModifiers.length > 0) {
-			$ionicPopup.alert({
-				title: 'Required Modifiers have not been selected',
-				template: requiredModifiers.join('<br/>')
-			});
-			return;
-		}
-
 		if (save) {
+			var requiredModifiers = [];
+			for (var i = 0; i < $scope.editedItem.item.modifier_objects.length; i++) {
+				if ($scope.editedItem.item.modifier_objects[i].error) {
+					requiredModifiers.push(' - ' + $scope.editedItem.item.modifier_objects[i].name)
+				}
+			}
+			if (requiredModifiers.length > 0) {
+				$ionicPopup.alert({
+					title: 'Required Modifiers have not been selected',
+					template: requiredModifiers.join('<br/>')
+				});
+				return;
+			}
+
 			$http.put('/order/' + $scope.editedOrder.id + '/item/' + $scope.editedItem.id, {
 				item_id: $scope.editedItem.item_id,
 				order_id: $scope.editedItem.order_id,
@@ -359,6 +359,14 @@ app.service('OrderItemService', function ($ionicModal, $http, $rootScope, datapa
 	this.scope.categories = [];
 	this.scope.closeModal = function () {
 		self.modal.hide();
+		self.modal.remove();
+
+		$ionicModal.fromTemplateUrl('views/orders/addItemModal.html', {
+			scope: self.scope,
+			animation: 'slide-in-up'
+		}).then(function (modal) {
+			self.modal = modal;
+		});
 	}
 	this.scope.addItem = function (category, item) {
 		$http.post('/order/' + self.scope.order.id + '/items', {

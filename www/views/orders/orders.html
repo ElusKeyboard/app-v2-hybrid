@@ -1,7 +1,7 @@
 
 <ion-view view-title="{{ table.name }}" cache-view="false">
   <ion-nav-buttons side="primary">
-    <button ui-sref="tabs.tables" direction="backwards" class="button back-button button-clear"><i class="icon ion-ios-arrow-back"></i> Tables</button>
+    <button ui-sref="tables" direction="backwards" class="button back-button button-clear"><i class="icon ion-ios-arrow-back"></i> Tables</button>
   </ion-nav-buttons>
   <ion-nav-buttons side="secondary">
     <button ng-click="showAddOrder()" class="button button-balanced">Add Course</button>
@@ -20,7 +20,7 @@
     <div class="row">
       <div class="col">
         <div class="button-bar">
-          <button ui-sref="tabs.orderBills({ group_id: group.id })" class="button button-block button-positive">Bills</button>
+          <button ui-sref="orderBills({ group_id: group.id })" class="button button-block button-positive">Bills</button>
           <button class="button button-block">Discounts</button>
         </div>
       </div>

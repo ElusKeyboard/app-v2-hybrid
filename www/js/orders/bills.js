@@ -41,7 +41,9 @@ app.controller('OrderBillsCtrl', function ($scope, $http, $state, OrderGroup) {
 
 	$scope.clearTable = function () {
 		$http.post('/order-group/' + OrderGroup.id + '/clear').success(function () {
-			$state.transitionTo('tabs.tables')
+			$state.go('tables', {}, {
+				direction: 'backwards'
+			})
 		}).error(function () {
 			$ionicPopup.alert({
 				title: 'Could not clear table.'
@@ -220,7 +222,7 @@ app.controller('OrderBillCtrl', function ($scope, $http, OrderGroup, Bill, dataM
 
 	$scope.markAsPaid = function () {
 		$scope.saveBill(function () {
-			$state.transitionTo('tabs.orderBills', {
+			$state.transitionTo('orderBills', {
 				group_id: $state.params.group_id
 			});
 		});
@@ -250,7 +252,7 @@ app.controller('OrderBillCtrl', function ($scope, $http, OrderGroup, Bill, dataM
 
 	$scope.deleteBill = function () {
 		$http.delete('/order-group/' + $scope.group.id + '/bill/' + $scope.bill.id).success(function () {
-			$state.transitionTo('tabs.orderBills', {
+			$state.transitionTo('orderBills', {
 				group_id: $state.params.group_id
 			});
 		}).error(function () {

@@ -1,6 +1,6 @@
 ion-view(view-title="Order Bills" cache-view="false")
 	ion-nav-buttons(side="primary")
-		button.button.back-button.button-clear(ui-sref="tabs.orders({ table_id: group.table_id })" direction="backwards")
+		button.button.back-button.button-clear(ui-sref="orders({ table_id: group.table_id })" direction="backwards")
 			i.icon.ion-ios-arrow-back
 			|  Order
 
@@ -20,12 +20,12 @@ ion-view(view-title="Order Bills" cache-view="false")
 
 		ion-list
 			ion-item.item-divider Bills
-			ion-item(ng-repeat="bill in bills" ui-sref="tabs.orderBill({ bill_id: bill.id, group_id: group.id })")
+			ion-item(ng-repeat="bill in bills" ui-sref="orderBill({ bill_id: bill.id, group_id: group.id })")
 				| £{{ bill.total }}
 				span.item-note.assertive(ng-if="!bill.paid") UNPAID (£{{ bill.total - bill.paid_amount }} to pay)
 				span.item-note.balanced(ng-if="bill.paid") PAID
 
-		.row: .col: button.button.button-positive.button-block(ui-sref="tabs.newOrderBill({ group_id: group.id })")
+		.row: .col: button.button.button-positive.button-block(ui-sref="newOrderBill({ group_id: group.id })")
 			i.icon.ion-ios-plus-empty
 			| &nbsp;Create Bill
 

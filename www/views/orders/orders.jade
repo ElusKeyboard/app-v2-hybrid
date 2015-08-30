@@ -1,6 +1,6 @@
 ion-view(view-title="{{ table.name }}" cache-view="false")
 	ion-nav-buttons(side="primary")
-		button.button.back-button.button-clear(ui-sref="tabs.tables" direction="backwards")
+		button.button.back-button.button-clear(ui-sref="tables" direction="backwards")
 			i.icon.ion-ios-arrow-back
 			|  Tables
 	ion-nav-buttons(side="secondary")
@@ -16,7 +16,7 @@ ion-view(view-title="{{ table.name }}" cache-view="false")
 		.row(style="padding-top: 0;" ng-if="!groupInfoForm.$pristine"): .col(style="padding-top: 0;"): button.button.button-block.button-balanced(ng-click="saveGroup(); groupInfoForm.$pristine = true;") Save
 
 		.row: .col: .button-bar
-			button.button.button-block.button-positive(ui-sref="tabs.orderBills({ group_id: group.id })") Bills
+			button.button.button-block.button-positive(ui-sref="orderBills({ group_id: group.id })") Bills
 			button.button.button-block Discounts
 
 		//- .row: .col(style="text-align: center;"): h4 Total

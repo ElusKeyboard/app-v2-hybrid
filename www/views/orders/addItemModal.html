@@ -1,13 +1,16 @@
 
 <ion-modal-view>
-  <ion-header-bar>
-    <h1 class="title">Add Item</h1>
+  <ion-header-bar class="item-input-inset">
+    <label class="item-input-wrapper"><i class="icon ion-ios-search placeholder-icon"></i>
+      <input type="search" placeholder="Search Items" ng-model="filter.item.name"/>
+    </label>
+    <button ng-click="filter.item.name = ''" class="button button-clear"><i class="icon ion-ios-close-empty"></i></button>
   </ion-header-bar>
   <ion-content>
     <ion-list>
       <div ng-repeat="category in categories">
         <ion-item class="item-divider">{{ category.category.name }}</ion-item>
-        <ion-item ng-repeat="item in category.items" ng-click="addItem(category, item)">{{ item.item.name }}</ion-item>
+        <ion-item ng-repeat="item in category.items | filter:filter" ng-click="addItem(category, item)">{{ item.item.name }}</ion-item>
       </div>
     </ion-list>
   </ion-content>

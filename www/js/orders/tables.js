@@ -53,8 +53,4 @@ app.controller('TablesCtrl', function ($scope, $http, $ionicPopover, datapack) {
 			$scope.refresh();
 		});
 	}
-
-	$scope.openConfig = function () {
-		window.open(localStorage['setup_ip'] + '/public/html/admin', '_system', 'location=yes');
-	}
 });

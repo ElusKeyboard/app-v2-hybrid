@@ -1,0 +1,15 @@
+ion-view(view-title="Dashboard")
+	ion-content
+		.card
+			.item.item-divider Functions
+			ion-item.item-icon-right(ui-sref="tables" nav-direction="forward") Restaurant
+				i.icon.ion-ios-arrow-right
+			ion-item.item-icon-right(ui-sref="delivery") Delivery
+				i.icon.ion-ios-arrow-right
+			ion-item.item-icon-right(ui-sref="delivery") Takeaway
+				i.icon.ion-ios-arrow-right
+
+		.card
+			ion-item.item-icon-left(ng-click="openConfig()")
+				i.icon.ion-ios-cog-outline
+				| Settings

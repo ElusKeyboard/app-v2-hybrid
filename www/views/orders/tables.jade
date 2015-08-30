@@ -1,11 +1,11 @@
 ion-view(view-title="Open Tables" cache-view="false")
 	ion-nav-buttons(side="primary")
-		button.button.button-balanced(ng-click="popover.show($event)") Open Table
-	ion-nav-buttons(side="secondary")
-		button.button.button-icon.icon.ion-ios-cog-outline(ng-click="openConfig()" target="_system")
+		button.button.back-button.button-clear(ui-sref="home" direction="backwards" nav-direction="back")
+			i.icon.ion-ios-arrow-back
+			|  Dashboard
 
 	ion-content
-		.card(ng-repeat="table in openTables" ui-sref="tabs.orders({table_id: table.id})" direction="forward")
+		.card(ng-repeat="table in openTables" ui-sref="orders({table_id: table.id})" direction="forward")
 			.item.item-divider \#{{ table.table_number }} - {{ table.name }}
 				small(ng-if="table.covers") &nbsp;({{ table.covers }} cover
 					span(ng-if="table.covers > 1") s
@@ -17,3 +17,6 @@ ion-view(view-title="Open Tables" cache-view="false")
 
 		.card(ng-if="openTables.length == 0")
 			.item.item-text-wrap(style="text-align: center;") No Open Tables
+
+
+		.padding: button.button.button-balanced.button-block(ng-click="popover.show($event)") Open Table

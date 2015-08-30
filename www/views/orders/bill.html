@@ -1,7 +1,7 @@
 
 <ion-view view-title="Bill for £{{ bill.totalFormatted }}" cache-view="false">
   <ion-nav-buttons side="primary">
-    <button ui-sref="tabs.orderBills($stateParams)" direction="backwards" class="button back-button button-clear"><i class="icon ion-ios-arrow-back"></i> Bills</button>
+    <button ui-sref="orderBills($stateParams)" direction="backwards" class="button back-button button-clear"><i class="icon ion-ios-arrow-back"></i> Bills</button>
   </ion-nav-buttons>
   <ion-content>
     <ion-list ng-repeat="order in orderItems" ng-if="!bill.printed_at">

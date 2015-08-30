@@ -2,23 +2,15 @@ var app = angular.module('orderchef');
 
 app.config(function($stateProvider) {
 	$stateProvider
-	.state('tabs.tables', {
+	.state('tables', {
 		url: '/tables',
-		views: {
-			tables: {
-				templateUrl: 'views/orders/tables.html',
-				controller: 'TablesCtrl',
-			}
-		}
+		templateUrl: 'views/orders/tables.html',
+		controller: 'TablesCtrl'
 	})
-	.state('tabs.orders', {
+	.state('orders', {
 		url: '/table/:table_id',
-		views: {
-			tables: {
-				templateUrl: 'views/orders/orders.html',
-				controller: 'OrdersCtrl'
-			}
-		},
+		templateUrl: 'views/orders/orders.html',
+		controller: 'OrdersCtrl',
 		resolve: {
 			OrderGroup: function ($q, $http, $stateParams) {
 				var d = $q.defer();
@@ -34,26 +26,18 @@ app.config(function($stateProvider) {
 			}
 		}
 	})
-	.state('tabs.orderBills', {
+	.state('orderBills', {
 		url: '/order/:group_id/bills',
-		views: {
-			tables: {
-				templateUrl: 'views/orders/bills.html',
-				controller: 'OrderBillsCtrl'
-			}
-		},
+		templateUrl: 'views/orders/bills.html',
+		controller: 'OrderBillsCtrl',
 		resolve: {
 			OrderGroup: getOrderGroup
 		}
 	})
-	.state('tabs.newOrderBill', {
+	.state('newOrderBill', {
 		url: '/order/:group_id/bill/new',
-		views: {
-			tables: {
-				templateUrl: 'views/orders/bill.html',
-				controller: 'OrderBillCtrl'
-			}
-		},
+		templateUrl: 'views/orders/bill.html',
+		controller: 'OrderBillCtrl',
 		resolve: {
 			OrderGroup: getOrderGroup,
 			Bill: function ($q, $http, $stateParams) {
@@ -61,14 +45,10 @@ app.config(function($stateProvider) {
 			}
 		}
 	})
-	.state('tabs.orderBill', {
+	.state('orderBill', {
 		url: '/order/:group_id/bill/:bill_id',
-		views: {
-			tables: {
-				templateUrl: 'views/orders/bill.html',
-				controller: 'OrderBillCtrl'
-			}
-		},
+		templateUrl: 'views/orders/bill.html',
+		controller: 'OrderBillCtrl',
 		resolve: {
 			OrderGroup: getOrderGroup,
 			Bill: function ($q, $http, $stateParams) {

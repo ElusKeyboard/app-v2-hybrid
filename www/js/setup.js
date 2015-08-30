@@ -3,14 +3,14 @@ var app = angular.module('orderchef');
 app.controller('SetupCtrl', function ($rootScope, $http, $ionicLoading, $state, datapack) {
 	if (datapack.data == null || datapack.data.last_refreshed || (new Date(datapack.data.last_refreshed)).getTime() - Date.now() > 86400) {
 		datapack.update().then(function () {
-			$state.transitionTo('tabs.tables');
+			$state.transitionTo('home');
 		}, function () {
 			$ionicLoading.show({
 				templateUrl: 'views/loading.html'
 			});
 		});
 	} else {
-		$state.transitionTo('tabs.tables');
+		$state.transitionTo('home');
 	}
 });
 
@@ -25,7 +25,7 @@ app.controller('SetupLoadingCtrl', function ($scope, $rootScope, $http, $ionicLo
 			$ionicLoading.hide();
 
 			datapack.update().then(function () {
-				$state.transitionTo('tabs.tables');
+				$state.transitionTo('home');
 			}, function () {
 				$ionicLoading.show({
 					templateUrl: 'views/loading.html'

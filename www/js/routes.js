@@ -9,9 +9,13 @@ app.config(function($stateProvider, $urlRouterProvider) {
 		templateUrl: 'views/setup.html',
 		controller: 'SetupCtrl'
 	})
-	.state('tabs', {
-		url: '/tabs',
-		templateUrl: 'views/tabs.html',
-		abstract: true
+	.state('home', {
+		url: '/home',
+		templateUrl: 'views/homepage.html',
+		controller: function ($scope) {
+			$scope.openConfig = function () {
+				window.open(localStorage['setup_ip'] + '/public/html/admin', '_system', 'location=yes');
+			}
+		}
 	});
 });
