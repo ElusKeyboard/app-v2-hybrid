@@ -5,38 +5,57 @@ ion-view(view-title="Bill for £{{ bill.totalFormatted }}" cache-view="false")
 			|  Bills
 
 	ion-content
-		ion-list(ng-repeat="order in orderItems" ng-if="!bill.printed_at")
-			ion-item.item-divider(ng-click="selectAll(order); billItemsChanged()")
-				i.icon(ng-class="{ 'ion-ios-checkmark': order.allChecked, 'ion-ios-circle-outline': !order.allChecked, positive: order.allChecked }")
-				| &nbsp;{{ order.type.name }}
-			ion-item.item-checkbox(ng-repeat="item in order.items" ng-class="{ strikethrough: item.billedFor }")
-				label.checkbox: input(type="checkbox" ng-model="item.selected" ng-change="checkOrderChecked(order); billItemsChanged();" ng-disabled="item.billedFor")
-				| {{ item.item.name }}
-				span.item-note £{{ item.total.toFixed(2) }}
+		div(ng-if="!bill.printed_at")
+			.row: .col: .button-bar
+				button.button.button-block(ng-class="{ 'button-plain': bill.bill_type != 'items', 'button-positive': bill.bill_type == 'items' }" ng-disabled="bill.bill_type != ''" ng-click="setBillType('items')") Pay for Items
+				button.button.button-block(ng-class="{ 'button-plain': bill.bill_type != 'amount', 'button-positive': bill.bill_type == 'amount' }" ng-disabled="bill.bill_type != ''" ng-click="setBillType('amount')") Pay exact Amount
 
-		.row(ng-if="!bill.printed_at"): .col: .button-bar
-			button.button.button-block.button-plain(ng-click="saveBill()") Save
-			button.button.button-block.button-balanced(ng-click="saveBill(printBill)") Save &amp; Print Bill
-		.row(ng-if="!bill.printed_at"): .col
-			button.button.button-block.button-assertive.button-small(ng-click="deleteBill()") Write Off
+			ion-list(ng-repeat="order in orderItems" ng-if="bill.bill_type == 'items'")
+				ion-item.item-divider(ng-click="selectAll(order); billItemsChanged()")
+					i.icon(ng-class="{ 'ion-ios-checkmark': order.allChecked, 'ion-ios-circle-outline': !order.allChecked, positive: order.allChecked }")
+					| &nbsp;{{ order.type.name }}
+				ion-item.item-checkbox(ng-repeat="item in order.items" ng-class="{ strikethrough: item.billedFor }")
+					label.checkbox: input(type="checkbox" ng-model="item.selected" ng-change="checkOrderChecked(order); billItemsChanged();" ng-disabled="item.billedFor")
+					| {{ item.item.name }}
+					span.item-note £{{ item.total.toFixed(2) }}
 
-		.row(ng-if="bill.printed_at"): .col: .button-bar
-			button.button.button-block.button-assertive.button-small(ng-click="deleteBill()") Write Off
-			button.button.button-block.button-plain(ng-click="printBill()") Re-Print Bill
+			.card(ng-if="bill.bill_type.length > 0")
+				ion-item.item-divider Extras
+				ion-item(ng-repeat="item in BillsService.bill_items") {{ item.name }}
+					.item-note
+						span(ng-if="!item.is_percent") £
+						| {{ item.price.toFixed(2) }}
+						span(ng-if="item.is_percent") %
 
-		.card(ng-if="bill.printed_at")
-			ion-item.item-divider Payment Method
-			label.item.item-radio(ng-repeat="paymentMethod in payment_methods")
-				input(type="radio" name="paymentMethod" ng-model="bill.payment_method_id" value="{{ paymentMethod.id }}")
-				.item-content {{ paymentMethod.name }}
-				i.radio-icon.ion-checkmark
+			.card(ng-if="bill.bill_type == 'amount'" style="margin-bottom: 0;")
+				label.item.item-input
+					span.input-label Amount £
+					input(type="number" placeholder="How much?" ng-model="amountItem.total")
+				ion-item.item-divider(ng-click="setBillAmount()") Total left to pay: <code>£{{ totals.leftPayFormatted }}</code>
+			.padding(ng-if="bill.bill_type == 'amount'" style="padding-top: 0;"): .button-bar
+				button.button.button-block.button-small(style="margin-top: 0;" ng-click="applyPercentAmount(25)") 25%
+				button.button.button-block.button-small(style="margin-top: 0;" ng-click="applyPercentAmount(50)") 50%
+				button.button.button-block.button-small(style="margin-top: 0;" ng-click="applyPercentAmount(0)") Custom %
 
-		.card(ng-if="bill.printed_at")
-			label.item.item-input
-				span.input-label Paid £
-				input(type="number" placeholder="How much paid?" ng-model="bill.paid_amount")
-			ion-item.item-divider(ng-click="setBillAmount()") Total to pay: <code>£{{ bill.totalFormatted }}</code>
+			div(ng-if="bill.bill_type.length > 0")
+				.row: .col: .button-bar
+					button.button.button-block.button-plain(ng-click="saveBill()") Save
+					button.button.button-block.button-balanced(ng-click="saveBill(printBill)") Save &amp; Print Bill
+				.row: .col
+					button.button.button-block.button-assertive.button-small(ng-click="deleteBill()") Write Off
 
-		.row(ng-if="bill.printed_at"): .col
-			button.button.button-block.button-large.button-stable(ng-if="bill.paid_amount != bill.total" ng-click="saveBill()") Save
-			button.button.button-block.button-large.button-balanced(ng-if="bill.paid_amount == bill.total" ng-click="markAsPaid()") Mark as Paid
+		div(ng-if="bill.printed_at")
+			.row: .col: .button-bar
+				button.button.button-block.button-assertive.button-small(ng-click="deleteBill()") Write Off
+				button.button.button-block.button-plain(ng-click="printBill()") Re-Print Bill
+
+			.card
+				ion-item.item-divider Payment Method
+				label.item.item-radio(ng-repeat="paymentMethod in payment_methods")
+					input(type="radio" name="paymentMethod" ng-model="bill.payment_method_id" value="{{ paymentMethod.id }}")
+					.item-content {{ paymentMethod.name }}
+					i.radio-icon.ion-checkmark
+
+			.row: .col: .button-bar
+				button.button.button-block.button-large.button-stable(ng-click="saveBill()" ng-disabled="!bill.payment_method_id") Save
+				button.button.button-block.button-large.button-balanced(ng-click="markAsPaid()" ng-disabled="!bill.payment_method_id") Paid in Full

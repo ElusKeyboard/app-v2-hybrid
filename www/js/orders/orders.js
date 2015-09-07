@@ -24,6 +24,10 @@ app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, d
 			});
 
 			cb();
+		}).error(function () {
+			$ionicPopup.alert({
+				title: 'Cannot get orders!'
+			});
 		});
 	}
 
@@ -61,13 +65,13 @@ app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, d
 	$scope.selectOrderGroup = function (group) {
 		var title = 'Not Printed yet'
 		var buttons = [{
-			text: 'Print to Kitchens'
+			text: 'Print'
 		}]
 
 		if (group.printed_at) {
 			var printed_at = moment(group.printed_at);
 			title = 'Printed ' + printed_at.fromNow() + ' (at ' + printed_at.format('hh:mm') + ')';
-			buttons[0].text = 'Re-print to Kitchens';
+			buttons[0].text = 'Re-Print';
 
 			buttons.push({
 				text: 'Add another item'
@@ -200,7 +204,8 @@ app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, d
 			$http.put('/order/' + $scope.editedOrder.id + '/item/' + $scope.editedItem.id, {
 				item_id: $scope.editedItem.item_id,
 				order_id: $scope.editedItem.order_id,
-				notes: $scope.editedItem.notes
+				notes: $scope.editedItem.notes,
+				quantity: $scope.editedItem.quantity
 			}).error(function () {
 				$ionicPopup.alert({
 					title: 'Could not save order item notes',

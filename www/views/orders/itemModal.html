@@ -8,9 +8,12 @@
       <label class="item item-input item-stacked-label"><span class="input-label">Item Notes</span>
         <textarea placeholder="notes" ng-model="editedItem.notes"></textarea>
       </label>
+      <label class="item item-input item-stacked-label"><span class="input-label">Quantity</span>
+        <input placeholder="Quantity" type="number" required="required" min="1" ng-model="editedItem.quantity"/>
+      </label>
     </ion-list>
     <div class="row">
-      <div style="" class="col">
+      <div class="col">
         <h4>Modifiers</h4>
       </div>
     </div>

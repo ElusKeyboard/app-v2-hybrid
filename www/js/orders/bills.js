@@ -1,14 +1,38 @@
 var app = angular.module('orderchef');
 
-app.controller('OrderBillsCtrl', function ($scope, $http, $state, OrderGroup) {
-	$scope.group = OrderGroup;
-	$scope.bills = [];
+app.service('BillsService', function ($http) {
+	var self = this;
+	this.payment_methods = [];
+	this.bill_items = [];
 
 	$http.get('/config/payment-methods').success(function (pm) {
-		$scope.payment_methods = pm;
+		self.payment_methods = pm;
+	});
+
+	$http.get('/config/bill-items').success(function (items) {
+		self.bill_items = items;
+		console.log(self.bill_items);
+	});
+
+	this.getTotals = function (OrderGroup, cb, cache) {
+		if (cache !== true) cache = false;
+
+		if (self.payment_methods.length == 0) {
+			$http.get('/config/payment-methods').success(function (pm) {
+				self.payment_methods = pm;
+				self._getTotals(OrderGroup, cb, cache);
+			});
+		} else {
+			self._getTotals(OrderGroup, cb, cache);
+		}
+	}
+
+	this.lastTotals = null;
+	this._getTotals = function (OrderGroup, cb, cache) {
+		if (cache && self.lastTotals != null && self.lastTotals.group_id == OrderGroup.id) return cb(self.lastTotals);
 
 		$http.get('/order-group/' + OrderGroup.id + '/bills/totals').success(function (totals) {
-			pm.forEach(function (p) {
+			self.payment_methods.forEach(function (p) {
 				p.amount = 0;
 
 				for (var i = 0; i < totals.paid.length; i++) {
@@ -25,14 +49,29 @@ app.controller('OrderBillsCtrl', function ($scope, $http, $state, OrderGroup) {
 				totalPaid += totals.paid[i].paid_amount;
 			}
 
+			totals.group_id = OrderGroup.id;
 			totals.paidTotal = Math.round(totalPaid * 100) / 100;
 			totals.paidFormatted = totals.paidTotal.toFixed(2);
 			totals.total = Math.round(totals.total * 100) / 100;
 			totals.totalFormatted = totals.total.toFixed(2);
-			totals.leftPay = (Math.round((totals.total - totals.paidTotal) * 100) / 100).toFixed(2)
+			totals.leftPay = Math.round((totals.total - totals.paidTotal) * 100) / 100;
+			totals.leftPayFormatted = totals.leftPay.toFixed(2)
+			self.lastTotals = totals;
 
-			$scope.totals = totals;
+			cb(totals);
 		});
+	}
+
+	return this;
+});
+
+app.controller('OrderBillsCtrl', function ($scope, $http, $state, $ionicPopup, OrderGroup, BillsService) {
+	$scope.group = OrderGroup;
+	$scope.bills = [];
+
+	$scope.BillsService = BillsService;
+	BillsService.getTotals(OrderGroup, function (totals) {
+		$scope.totals = totals;
 	});
 
 	$http.get('/order-group/' + OrderGroup.id + '/bills').success(function (bills) {
@@ -50,11 +89,44 @@ app.controller('OrderBillsCtrl', function ($scope, $http, $state, OrderGroup) {
 			})
 		});
 	}
+
+	$scope.splitBill = function () {
+		if (OrderGroup.covers <= 0) {
+			$ionicPopup.alert({
+				title: 'No covers'
+			});
+
+			return;
+		}
+
+		var perCover = $scope.totals.leftPay / OrderGroup.covers;
+		if (perCover <= 0) return;
+
+		$http.post('/order-group/' + OrderGroup.id + '/bills/split', {
+			covers: OrderGroup.covers,
+			perCover: perCover
+		}).success(function () {
+			BillsService.getTotals(OrderGroup, function (totals) {
+				$scope.totals = totals;
+			});
+
+			$http.get('/order-group/' + OrderGroup.id + '/bills').success(function (bills) {
+				$scope.bills = bills;
+			});
+		}).error(function () {
+			$ionicPopup.alert({
+				title: "Could not split bills"
+			});
+		});
+	}
 });
 
-app.controller('OrderBillCtrl', function ($scope, $http, OrderGroup, Bill, dataMatcher, $ionicPopup, $state) {
+app.controller('OrderBillCtrl', function ($scope, $http, OrderGroup, Bill, dataMatcher, $ionicPopup, $state, BillsService, $rootScope) {
 	$scope.group = OrderGroup;
 	$scope.bill = Bill;
+	$scope.amountItem = {};
+	$scope.orderItems = [];
+	$scope.BillsService = BillsService;
 
 	if (!Bill.id) {
 		$scope.newBill = true;
@@ -64,6 +136,10 @@ app.controller('OrderBillCtrl', function ($scope, $http, OrderGroup, Bill, dataM
 			$scope.formatTotal();
 		});
 	}
+
+	BillsService.getTotals(OrderGroup, function (totals) {
+		$scope.totals = totals;
+	}, true);
 
 	$http.get('/config/payment-methods').success(function (pm) {
 		$scope.payment_methods = pm;
@@ -82,61 +158,113 @@ app.controller('OrderBillCtrl', function ($scope, $http, OrderGroup, Bill, dataM
 
 	$scope.formatTotal();
 
-	$http.get('/order-group/' + OrderGroup.id + '/orders').success(function (orders) {
-		$http.get('/order-group/' + OrderGroup.id + '/bills').success(function (bills) {
-			// item ids billed for
-			var billedFor = [];
-			var toCheck = [];
-			bills.forEach(function (bill) {
-				if (!bill.bill_items) return;
+	$scope.applyPercentAmount = function (percent) {
+		if (percent == 0) {
+			var scope = $rootScope.$new();
+			scope.data = {};
+			return $ionicPopup.show({
+				template: '<input type="number" min="1" max="100" placeholder="Enter percentage" ng-model="data.percent">',
+				title: 'Enter Custom Bill Percentage',
+				subTitle: 'Enter a number, 0-100',
+				scope: scope,
+				buttons: [{
+					text: 'Cancel'
+				}, {
+					text: '<b>Save</b>',
+					type: 'button-positive',
+					onTap: function(e) {
+						if (!scope.data.percent) {
+							e.preventDefault();
+						} else {
+							return scope.data.percent;
+						}
+					}
+				}]
+  		}).then(function(percent) {
+  			$scope.amountItem.total = $scope.totals.leftPay * (percent / 100);
+  		});
+		}
 
-				for (var i = 0; i < bill.bill_items.length; i++) {
-					if (bill.id == $scope.bill.id) {
-						toCheck.push(bill.bill_items[i].order_item_id);
-					} else {
-						billedFor.push(bill.bill_items[i].order_item_id);
+		$scope.amountItem.total = $scope.totals.leftPay * (percent / 100);
+	}
+
+	$scope.setBillType = function (type) {
+		$scope.payFor = type;
+		$scope.bill.bill_type = type;
+
+		$scope.refreshBillItems();
+	}
+
+	$scope.refreshBillItems = function () {
+		if ($scope.bill.bill_type != 'items') {
+			if ($scope.bill.bill_items) {
+				for (var i = 0; i < $scope.bill.bill_items.length; i++) {
+					if ($scope.bill.bill_items[i].order_item_id == null && $scope.bill.bill_items[i].item_name == '-') {
+						$scope.amountItem.total = $scope.bill.bill_items[i].item_price;
 					}
 				}
-			});
+			}
 
-			$scope.orderItems = orders;
+			return;
+		}
 
-			orders.forEach(function (order) {
-				order.type = dataMatcher.getOrderType(order.type_id);
+		$http.get('/order-group/' + OrderGroup.id + '/orders').success(function (orders) {
+			$http.get('/order-group/' + OrderGroup.id + '/bills').success(function (bills) {
+				// item ids billed for
+				var billedFor = [];
+				var toCheck = [];
+				bills.forEach(function (bill) {
+					if (!bill.bill_items) return;
 
-				order.items.forEach(function (orderItem) {
-					orderItem.billedFor = false;
-					for (var i = 0; i < billedFor.length; i++) {
-						if (billedFor[i] == orderItem.id) {
-							orderItem.billedFor = true;
+					for (var i = 0; i < bill.bill_items.length; i++) {
+						if (bill.id == $scope.bill.id) {
+							toCheck.push(bill.bill_items[i].order_item_id);
+						} else {
+							billedFor.push(bill.bill_items[i].order_item_id);
 						}
 					}
-
-					for (var i = 0; i < toCheck.length; i++) {
-						if (toCheck[i] == orderItem.id) {
-							orderItem.selected = true;
-						}
-					}
-
-					if (!orderItem.billedFor && $scope.newBill) orderItem.selected = true;
-
-					orderItem.item = dataMatcher.getItem(orderItem.item_id);
-					orderItem.total = orderItem.item.price;
-
-					orderItem.modifiers.forEach(function (modifier) {
-						modifier.group = dataMatcher.getModifierGroup(modifier.modifier_group_id);
-						modifier.modifier = dataMatcher.getModifier(modifier.modifier_group_id, modifier.modifier_id);
-						orderItem.total += modifier.modifier.price;
-					});
 				});
 
-				$scope.checkOrderChecked(order);
-			});
+				$scope.orderItems = orders;
 
-			$scope.billItemsChanged();
-			if ($scope.newBill) $scope.saveBill();
+				orders.forEach(function (order) {
+					order.type = dataMatcher.getOrderType(order.type_id);
+
+					order.items.forEach(function (orderItem) {
+						orderItem.billedFor = false;
+						for (var i = 0; i < billedFor.length; i++) {
+							if (billedFor[i] == orderItem.id) {
+								orderItem.billedFor = true;
+							}
+						}
+
+						for (var i = 0; i < toCheck.length; i++) {
+							if (toCheck[i] == orderItem.id) {
+								orderItem.selected = true;
+							}
+						}
+
+						// if (!orderItem.billedFor && $scope.newBill) orderItem.selected = true;
+
+						orderItem.item = dataMatcher.getItem(orderItem.item_id);
+						orderItem.total = orderItem.quantity * orderItem.item.price;
+
+						orderItem.modifiers.forEach(function (modifier) {
+							modifier.group = dataMatcher.getModifierGroup(modifier.modifier_group_id);
+							modifier.modifier = dataMatcher.getModifier(modifier.modifier_group_id, modifier.modifier_id);
+							orderItem.total += orderItem.quantity * modifier.modifier.price;
+						});
+					});
+
+					$scope.checkOrderChecked(order);
+				});
+
+				$scope.billItemsChanged();
+				if ($scope.newBill) $scope.saveBill();
+			});
 		});
-	});
+	}
+	$scope.refreshBillItems();
 
 	$scope.checkOrderChecked = function (order) {
 		order.allChecked = false;
@@ -184,11 +312,14 @@ app.controller('OrderBillCtrl', function ($scope, $http, OrderGroup, Bill, dataM
 			}
 		});
 
+		$scope.bill.total += $scope.amountItem.total;
+
 		if (!$scope.$$phase) $scope.$digest();
 	}
 
 	$scope.saveBill = function (cb) {
 		if (typeof cb != 'function') cb = function(){}
+		$scope.billItemsChanged();
 
 		var selected = []
 		$scope.orderItems.forEach(function (item) {
@@ -204,6 +335,15 @@ app.controller('OrderBillCtrl', function ($scope, $http, OrderGroup, Bill, dataM
 				}
 			}
 		});
+
+		if ($scope.bill.bill_type == 'amount') {
+			selected.push({
+				order_item_id: null,
+				item_name: '-',
+				item_price: $scope.amountItem.total,
+				discount: 0
+			});
+		}
 
 		var bill = JSON.parse(JSON.stringify($scope.bill));
 		if (!bill.paid_amount) bill.paid_amount = 0;
@@ -221,6 +361,7 @@ app.controller('OrderBillCtrl', function ($scope, $http, OrderGroup, Bill, dataM
 	}
 
 	$scope.markAsPaid = function () {
+		$scope.bill.paid_amount = $scope.bill.total;
 		$scope.saveBill(function () {
 			$state.transitionTo('orderBills', {
 				group_id: $state.params.group_id
@@ -263,6 +404,6 @@ app.controller('OrderBillCtrl', function ($scope, $http, OrderGroup, Bill, dataM
 	}
 
 	$scope.setBillAmount = function () {
-		$scope.bill.paid_amount = parseFloat($scope.bill.totalFormatted)
+		$scope.amountItem.total = $scope.totals.leftPay;
 	}
 });

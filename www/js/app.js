@@ -6,8 +6,8 @@ app.config(function ($httpProvider, $ionicConfigProvider) {
 	$httpProvider.interceptors.push(function ($q) {
 		return {
 			'request': function (config) {
-				if (config.url.indexOf('http://') === -1) {
-					config.timeout = 1000;
+				if (config.url.indexOf('http://') === -1 && config.url.indexOf('/datapack') === -1) {
+					config.timeout = 2000;
 				}
 
 				if (config.url.indexOf('views/') === -1 && config.url.indexOf('http://') === -1) {
@@ -38,7 +38,7 @@ app.run(function($rootScope, $ionicPlatform, $state, $stateParams, datapack) {
 		// Hide the accessory bar by default
 		if (window.cordova && window.cordova.plugins.Keyboard) {
 			cordova.plugins.Keyboard.disableScroll(true);
-			cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+			// cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
 		}
 
 		if (window.StatusBar) {

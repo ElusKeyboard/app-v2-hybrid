@@ -12,13 +12,16 @@ app.config(function($stateProvider) {
 		templateUrl: 'views/orders/orders.html',
 		controller: 'OrdersCtrl',
 		resolve: {
-			OrderGroup: function ($q, $http, $stateParams) {
+			OrderGroup: function ($q, $http, $stateParams, $ionicPopup) {
 				var d = $q.defer();
 
 				$http.get('/table/' + $stateParams.table_id + '/group')
 				.success(function (group) {
 					d.resolve(group);
 				}).error(function () {
+					$ionicPopup.alert({
+						title: 'Cannot get table orders!'
+					});
 					d.reject();
 				});
 
@@ -57,6 +60,9 @@ app.config(function($stateProvider) {
 				$http.get('/order-group/' + $stateParams.group_id + '/bill/' + $stateParams.bill_id).success(function (bill) {
 					d.resolve(bill);
 				}).error(function () {
+					$ionicPopup.alert({
+						title: 'Cannot get bill!'
+					});
 					d.reject();
 				});
 
@@ -73,6 +79,9 @@ function getOrderGroup ($q, $http, $stateParams) {
 	.success(function (group) {
 		d.resolve(group);
 	}).error(function () {
+		$ionicPopup.alert({
+			title: 'Cannot get table details!'
+		});
 		d.reject();
 	});
 

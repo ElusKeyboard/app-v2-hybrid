@@ -9,11 +9,11 @@ ion-view(view-title="Order Bills" cache-view="false")
 			ion-item.item-divider
 				strong Total paid
 				span.item-note £{{ totals.paidFormatted }}
-			ion-item(ng-repeat="payment_method in payment_methods") {{ payment_method.name }}
+			ion-item(ng-repeat="payment_method in BillsService.payment_methods") {{ payment_method.name }}
 				span.item-note £{{ payment_method.amountFormatted }}
 			ion-item.item-divider(ng-if="totals.paidFormatted != totals.totalFormatted")
 				span Left to pay
-				span.item-note.assertive £{{ totals.leftPay }}
+				span.item-note.assertive £{{ totals.leftPayFormatted }}
 			ion-item.item-divider
 				strong Total
 				span.item-note(ng-class="{ assertive: totals.paidFormatted != totals.totalFormatted, balanced: totals.paidFormatted == totals.totalFormatted }") £{{ totals.totalFormatted }}
@@ -25,9 +25,11 @@ ion-view(view-title="Order Bills" cache-view="false")
 				span.item-note.assertive(ng-if="!bill.paid") UNPAID (£{{ bill.total - bill.paid_amount }} to pay)
 				span.item-note.balanced(ng-if="bill.paid") PAID
 
-		.row: .col: button.button.button-positive.button-block(ui-sref="newOrderBill({ group_id: group.id })")
-			i.icon.ion-ios-plus-empty
-			| &nbsp;Create Bill
+		.padding: .button-bar
+			button.button.button-positive.button-block(ui-sref="newOrderBill({ group_id: group.id })")
+				i.icon.ion-ios-plus-empty
+				| &nbsp;Create Bill
+			button.button.button-block(ng-click="splitBill()") Split by Covers
 
 		.row(ng-if="totals.paidTotal >= totals.total"): .col
 			br

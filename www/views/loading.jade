@@ -2,9 +2,7 @@ div(ng-controller="SetupLoadingCtrl")
 	h3 Setup
 
 	.list
-		label.item.item-input(ng-if="is_setup")
-			input(type="text" placeholder="Venue Name" ng-model="venue_name" required)
 		label.item.item-input
-			input(type="text" placeholder="IP Address" ng-model="ip_address" required)
+			input(type="url" placeholder="IP Address" ng-model="ip_address" required)
 
-		button.button.button-block.button-positive(type="button" ng-click="setup(venue_name, ip_address)") Set Up
+		button.button.button-block.button-positive(type="button" ng-click="setup(ip_address)") Set Up

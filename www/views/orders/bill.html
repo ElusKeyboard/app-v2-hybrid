@@ -4,52 +4,81 @@
     <button ui-sref="orderBills($stateParams)" direction="backwards" class="button back-button button-clear"><i class="icon ion-ios-arrow-back"></i> Bills</button>
   </ion-nav-buttons>
   <ion-content>
-    <ion-list ng-repeat="order in orderItems" ng-if="!bill.printed_at">
-      <ion-item ng-click="selectAll(order); billItemsChanged()" class="item-divider"><i ng-class="{ 'ion-ios-checkmark': order.allChecked, 'ion-ios-circle-outline': !order.allChecked, positive: order.allChecked }" class="icon"></i>&nbsp;{{ order.type.name }}</ion-item>
-      <ion-item ng-repeat="item in order.items" ng-class="{ strikethrough: item.billedFor }" class="item-checkbox">
-        <label class="checkbox">
-          <input type="checkbox" ng-model="item.selected" ng-change="checkOrderChecked(order); billItemsChanged();" ng-disabled="item.billedFor"/>
-        </label>{{ item.item.name }}<span class="item-note">£{{ item.total.toFixed(2) }}</span>
-      </ion-item>
-    </ion-list>
-    <div ng-if="!bill.printed_at" class="row">
-      <div class="col">
+    <div ng-if="!bill.printed_at">
+      <div class="row">
+        <div class="col">
+          <div class="button-bar">
+            <button ng-class="{ 'button-plain': bill.bill_type != 'items', 'button-positive': bill.bill_type == 'items' }" ng-disabled="bill.bill_type != ''" ng-click="setBillType('items')" class="button button-block">Pay for Items</button>
+            <button ng-class="{ 'button-plain': bill.bill_type != 'amount', 'button-positive': bill.bill_type == 'amount' }" ng-disabled="bill.bill_type != ''" ng-click="setBillType('amount')" class="button button-block">Pay exact Amount</button>
+          </div>
+        </div>
+      </div>
+      <ion-list ng-repeat="order in orderItems" ng-if="bill.bill_type == 'items'">
+        <ion-item ng-click="selectAll(order); billItemsChanged()" class="item-divider"><i ng-class="{ 'ion-ios-checkmark': order.allChecked, 'ion-ios-circle-outline': !order.allChecked, positive: order.allChecked }" class="icon"></i>&nbsp;{{ order.type.name }}</ion-item>
+        <ion-item ng-repeat="item in order.items" ng-class="{ strikethrough: item.billedFor }" class="item-checkbox">
+          <label class="checkbox">
+            <input type="checkbox" ng-model="item.selected" ng-change="checkOrderChecked(order); billItemsChanged();" ng-disabled="item.billedFor"/>
+          </label>{{ item.item.name }}<span class="item-note">£{{ item.total.toFixed(2) }}</span>
+        </ion-item>
+      </ion-list>
+      <div ng-if="bill.bill_type.length &gt; 0" class="card">
+        <ion-item class="item-divider">Extras</ion-item>
+        <ion-item ng-repeat="item in BillsService.bill_items">{{ item.name }}
+          <div class="item-note"><span ng-if="!item.is_percent">£</span>{{ item.price.toFixed(2) }}<span ng-if="item.is_percent">%</span></div>
+        </ion-item>
+      </div>
+      <div ng-if="bill.bill_type == 'amount'" style="margin-bottom: 0;" class="card">
+        <label class="item item-input"><span class="input-label">Amount £</span>
+          <input type="number" placeholder="How much?" ng-model="amountItem.total"/>
+        </label>
+        <ion-item ng-click="setBillAmount()" class="item-divider">Total left to pay: <code>£{{ totals.leftPayFormatted }}</code></ion-item>
+      </div>
+      <div ng-if="bill.bill_type == 'amount'" style="padding-top: 0;" class="padding">
         <div class="button-bar">
-          <button ng-click="saveBill()" class="button button-block button-plain">Save</button>
-          <button ng-click="saveBill(printBill)" class="button button-block button-balanced">Save &amp; Print Bill</button>
+          <button style="margin-top: 0;" ng-click="applyPercentAmount(25)" class="button button-block button-small">25%</button>
+          <button style="margin-top: 0;" ng-click="applyPercentAmount(50)" class="button button-block button-small">50%</button>
+          <button style="margin-top: 0;" ng-click="applyPercentAmount(0)" class="button button-block button-small">Custom %</button>
+        </div>
+      </div>
+      <div ng-if="bill.bill_type.length &gt; 0">
+        <div class="row">
+          <div class="col">
+            <div class="button-bar">
+              <button ng-click="saveBill()" class="button button-block button-plain">Save</button>
+              <button ng-click="saveBill(printBill)" class="button button-block button-balanced">Save &amp; Print Bill</button>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <button ng-click="deleteBill()" class="button button-block button-assertive button-small">Write Off</button>
+          </div>
         </div>
       </div>
     </div>
-    <div ng-if="!bill.printed_at" class="row">
-      <div class="col">
-        <button ng-click="deleteBill()" class="button button-block button-assertive button-small">Write Off</button>
-      </div>
-    </div>
-    <div ng-if="bill.printed_at" class="row">
-      <div class="col">
-        <div class="button-bar">
-          <button ng-click="deleteBill()" class="button button-block button-assertive button-small">Write Off</button>
-          <button ng-click="printBill()" class="button button-block button-plain">Re-Print Bill</button>
+    <div ng-if="bill.printed_at">
+      <div class="row">
+        <div class="col">
+          <div class="button-bar">
+            <button ng-click="deleteBill()" class="button button-block button-assertive button-small">Write Off</button>
+            <button ng-click="printBill()" class="button button-block button-plain">Re-Print Bill</button>
+          </div>
         </div>
       </div>
-    </div>
-    <div ng-if="bill.printed_at" class="card">
-      <ion-item class="item-divider">Payment Method</ion-item>
-      <label ng-repeat="paymentMethod in payment_methods" class="item item-radio">
-        <input type="radio" name="paymentMethod" ng-model="bill.payment_method_id" value="{{ paymentMethod.id }}"/>
-        <div class="item-content">{{ paymentMethod.name }}</div><i class="radio-icon ion-checkmark"></i>
-      </label>
-    </div>
-    <div ng-if="bill.printed_at" class="card">
-      <label class="item item-input"><span class="input-label">Paid £</span>
-        <input type="number" placeholder="How much paid?" ng-model="bill.paid_amount"/>
-      </label>
-      <ion-item ng-click="setBillAmount()" class="item-divider">Total to pay: <code>£{{ bill.totalFormatted }}</code></ion-item>
-    </div>
-    <div ng-if="bill.printed_at" class="row">
-      <div class="col">
-        <button ng-if="bill.paid_amount != bill.total" ng-click="saveBill()" class="button button-block button-large button-stable">Save</button>
-        <button ng-if="bill.paid_amount == bill.total" ng-click="markAsPaid()" class="button button-block button-large button-balanced">Mark as Paid</button>
+      <div class="card">
+        <ion-item class="item-divider">Payment Method</ion-item>
+        <label ng-repeat="paymentMethod in payment_methods" class="item item-radio">
+          <input type="radio" name="paymentMethod" ng-model="bill.payment_method_id" value="{{ paymentMethod.id }}"/>
+          <div class="item-content">{{ paymentMethod.name }}</div><i class="radio-icon ion-checkmark"></i>
+        </label>
+      </div>
+      <div class="row">
+        <div class="col">
+          <div class="button-bar">
+            <button ng-click="saveBill()" ng-disabled="!bill.payment_method_id" class="button button-block button-large button-stable">Save</button>
+            <button ng-click="markAsPaid()" ng-disabled="!bill.payment_method_id" class="button button-block button-large button-balanced">Paid in Full</button>
+          </div>
+        </div>
       </div>
     </div>
   </ion-content>

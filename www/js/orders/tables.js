@@ -1,6 +1,6 @@
 var app = angular.module('orderchef');
 
-app.controller('TablesCtrl', function ($scope, $http, $ionicPopover, datapack) {
+app.controller('TablesCtrl', function ($scope, $http, $ionicPopover, $ionicPopup, datapack) {
 	var tableTypes = {};
 	for (var i = 0; i < datapack.data.tables.length; i++) {
 		var table = datapack.data.tables[i];
@@ -42,6 +42,10 @@ app.controller('TablesCtrl', function ($scope, $http, $ionicPopover, datapack) {
 					}
 				}
 			}
+		}).error(function () {
+			$ionicPopup.alert({
+				title: 'Cannot refresh Tables'
+			});
 		});
 	}
 
@@ -51,6 +55,10 @@ app.controller('TablesCtrl', function ($scope, $http, $ionicPopover, datapack) {
 		$http.get('/table/' + table.id + '/group').success(function () {
 			$scope.popover.hide();
 			$scope.refresh();
+		}).error(function () {
+			$ionicPopup.alert({
+				title: 'Cannot open Table'
+			});
 		});
 	}
 });

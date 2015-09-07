@@ -6,8 +6,11 @@ ion-modal-view
 			label.item.item-input.item-stacked-label
 				span.input-label Item Notes
 				textarea(placeholder="notes" ng-model="editedItem.notes")
+			label.item.item-input.item-stacked-label
+				span.input-label Quantity
+				input(placeholder="Quantity" type="number" required min="1" ng-model="editedItem.quantity")
 
-		.row: .col(style=""): h4 Modifiers
+		.row: .col: h4 Modifiers
 
 		ion-list
 			div(ng-repeat="modifier_group in editedItem.item.modifier_objects")

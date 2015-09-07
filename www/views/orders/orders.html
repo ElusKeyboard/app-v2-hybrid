@@ -25,12 +25,17 @@
         </div>
       </div>
     </div>
+    <div ng-if="orderItems.length == 0" class="row">
+      <div class="col">
+        <button ng-click="showAddOrder()" class="button button-block button-balanced"><i class="icon ion-ios-plus-empty"></i>&nbsp;Add Course</button>
+      </div>
+    </div>
     <div ng-repeat="order in orderItems" class="list">
       <div ng-click="selectOrderGroup(order)" class="item item-divider"><i class="icon ion-clipboard royal"></i><span ng-if="order.printed_at">&nbsp;<i ng-if="order.printed_at" class="icon ion-printer positive"></i></span>&nbsp; {{ order.type.name }}</div>
       <div style="padding: 0;" ng-if="order.items.length &gt; 0" class="item item-text-wrap">
         <ion-list>
-          <ion-item ng-repeat="item in order.items" ng-click="showEditItem(item.id)"><strong>{{ item.item.name }}</strong><strong ng-if="!item.item">n/a</strong><span class="item-note">£{{ item.item.price.toFixed(2) }}</span><br/>
-            <div ng-repeat="modifier in item.modifiers">{{ modifier.group.name }} - {{ modifier.modifier.name }}<span class="item-note">£{{ modifier.modifier.price.toFixed(2) }}</span></div>
+          <ion-item ng-repeat="item in order.items" ng-click="showEditItem(item.id)"><strong><span ng-if="item.quantity &gt; 1">{{ item.quantity }}x&nbsp;</span>{{ item.item.name }}</strong><strong ng-if="!item.item">n/a</strong><span class="item-note">£{{ (item.quantity * item.item.price).toFixed(2) }}</span><br/>
+            <div ng-repeat="modifier in item.modifiers">{{ modifier.group.name }} - {{ modifier.modifier.name }}<span class="item-note">£{{ (item.quantity * modifier.modifier.price).toFixed(2) }}</span></div>
           </ion-item>
         </ion-list>
       </div>

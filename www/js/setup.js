@@ -15,12 +15,12 @@ app.controller('SetupCtrl', function ($rootScope, $http, $ionicLoading, $state, 
 });
 
 app.controller('SetupLoadingCtrl', function ($scope, $rootScope, $http, $ionicLoading, datapack, $state) {
-	$scope.setup = function (venue_name, ip_address) {
+	$scope.setup = function (ip_address) {
 		localStorage['setup_ip'] = ip_address;
 
 		$http.post('/config/settings', {
 			is_setup: true,
-			venue_name: venue_name
+			venue_name: 'orderchef'
 		}).success(function () {
 			$ionicLoading.hide();
 
