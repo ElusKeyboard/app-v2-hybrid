@@ -6,11 +6,11 @@
     </label>
     <button ng-click="filter.item.name = ''" class="button button-clear"><i class="icon ion-ios-close-empty"></i></button>
   </ion-header-bar>
-  <ion-content>
+  <ion-content delegate-handle="availableTicketScroll">
     <ion-list>
-      <div ng-repeat="category in categories">
-        <ion-item class="item-divider">{{ category.category.name }}</ion-item>
-        <ion-item ng-repeat="item in category.items | filter:filter" ng-click="addItem(category, item)">{{ item.item.name }}</ion-item>
+      <div ng-repeat="category in categories" ng-init="category.open = false">
+        <ion-item ng-if="!filter.item.name.length" ng-click="openCloseCategory(category)" class="item-divider">{{ category.category.name }}</ion-item>
+        <ion-item ng-if="category.open || filter.item.name.length" ng-repeat="item in category.items | filter:filter" ng-click="addItem(category, item)">{{ item.item.name }}</ion-item>
       </div>
     </ion-list>
   </ion-content>

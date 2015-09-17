@@ -351,7 +351,7 @@ app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, d
 	});
 });
 
-app.service('OrderItemService', function ($ionicModal, $http, $rootScope, datapack) {
+app.service('OrderItemService', function ($ionicModal, $http, $rootScope, datapack, $ionicScrollDelegate) {
 	var self = this;
 	this.modal = null;
 	this.scope = $rootScope.$new();
@@ -361,6 +361,10 @@ app.service('OrderItemService', function ($ionicModal, $http, $rootScope, datapa
 		self.modal.show();
 	}
 
+	this.scope.openCloseCategory = function (category) {
+		category.open = !category.open;
+		$ionicScrollDelegate.resize();
+	}
 	this.scope.categories = [];
 	this.scope.closeModal = function () {
 		self.modal.hide();

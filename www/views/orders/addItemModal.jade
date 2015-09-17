@@ -4,10 +4,10 @@ ion-modal-view
 			i.icon.ion-ios-search.placeholder-icon
 			input(type="search" placeholder="Search Items" ng-model="filter.item.name")
 		button.button.button-clear(ng-click="filter.item.name = ''"): i.icon.ion-ios-close-empty
-	ion-content
+	ion-content(delegate-handle="availableTicketScroll")
 		ion-list
-			div(ng-repeat="category in categories")
-				ion-item.item-divider {{ category.category.name }}
-				ion-item(ng-repeat="item in category.items | filter:filter" ng-click="addItem(category, item)") {{ item.item.name }}
+			div(ng-repeat="category in categories" ng-init="category.open = false")
+				ion-item.item-divider(ng-if="!filter.item.name.length" ng-click="openCloseCategory(category)") {{ category.category.name }}
+				ion-item(ng-if="category.open || filter.item.name.length" ng-repeat="item in category.items | filter:filter" ng-click="addItem(category, item)") {{ item.item.name }}
 
 	ion-footer-bar.bar-calm(ng-click="closeModal()"): .title Done

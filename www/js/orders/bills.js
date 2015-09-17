@@ -312,7 +312,8 @@ app.controller('OrderBillCtrl', function ($scope, $http, OrderGroup, Bill, dataM
 			}
 		});
 
-		$scope.bill.total += $scope.amountItem.total;
+		if ($scope.amountItem.total)
+			$scope.bill.total += $scope.amountItem.total;
 
 		if (!$scope.$$phase) $scope.$digest();
 	}
