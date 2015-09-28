@@ -65,17 +65,78 @@ app.service('BillsService', function ($http) {
 	return this;
 });
 
-app.controller('OrderBillsCtrl', function ($scope, $http, $state, $ionicPopup, OrderGroup, BillsService) {
+app.controller('OrderBillsCtrl', function ($scope, $http, OrderGroup, dataMatcher, $ionicPopup, $state, BillsService, $rootScope) {
 	$scope.group = OrderGroup;
-	$scope.bills = [];
+	$scope.bill = null;
+	$scope.amountItem = {};
+	$scope.orderItems = [];
+	$scope.paid = [];
+	$scope.totals = {};
 
 	$scope.BillsService = BillsService;
 	BillsService.getTotals(OrderGroup, function (totals) {
 		$scope.totals = totals;
 	});
 
+	$http.get('/config/payment-methods').success(function (pm) {
+		$scope.payment_methods = pm;
+	});
+
 	$http.get('/order-group/' + OrderGroup.id + '/bills').success(function (bills) {
-		$scope.bills = bills;
+		if (bills.length == 0) {
+			$http.post('/order-group/' + OrderGroup.id + '/bills').success(function (bill) {
+				$scope.bill = bill;
+				for (var i = 0; i < $scope.payment_methods.length; i++) {
+					$scope.paid.push({
+						payment_method_id: $scope.payment_methods[i].id,
+						bill_id: $scope.bill.id,
+						amount: 0,
+						name: $scope.payment_methods[i].name
+					});
+				}
+
+				$scope.formatTotal();
+				$scope.formatPaidTotal();
+				$scope.refreshBillItems();
+			});
+
+			return;
+		}
+
+		$scope.bill = bills[0];
+		$http.get('/order-group/' + OrderGroup.id + '/bill/' + $scope.bill.id + '/payment').success(function (payments) {
+			$scope.paid = payments;
+			for (var i = 0; i < $scope.payment_methods.length; i++) {
+				var found = null;
+				for (var x = 0; x < $scope.paid.length; x++) {
+					if ($scope.paid[x].payment_method_id == $scope.payment_methods[i].id) {
+						found = x;
+						break;
+					}
+				}
+
+				if (found === null) {
+					$scope.paid.push({
+						payment_method_id: $scope.payment_methods[i].id,
+						bill_id: $scope.bill.id,
+						amount: 0,
+						name: $scope.payment_methods[i].name
+					});
+				} else {
+					$scope.paid[found].name = $scope.payment_methods[i].name;
+				}
+			}
+
+			$scope.formatPaidTotal();
+		});
+		$scope.formatTotal();
+		$scope.refreshBillItems();
+
+		if (bills.length > 1) {
+			for (var i = 1; i < bills.length; i++) {
+				$http.delete('/order-group/' + OrderGroup.id + '/bill/' + bills[i].id);
+			}
+		}
 	});
 
 	$scope.clearTable = function () {
@@ -90,64 +151,7 @@ app.controller('OrderBillsCtrl', function ($scope, $http, $state, $ionicPopup, O
 		});
 	}
 
-	$scope.splitBill = function () {
-		if (OrderGroup.covers <= 0) {
-			$ionicPopup.alert({
-				title: 'No covers'
-			});
-
-			return;
-		}
-
-		var perCover = $scope.totals.leftPay / OrderGroup.covers;
-		if (perCover <= 0) return;
-
-		$http.post('/order-group/' + OrderGroup.id + '/bills/split', {
-			covers: OrderGroup.covers,
-			perCover: perCover
-		}).success(function () {
-			BillsService.getTotals(OrderGroup, function (totals) {
-				$scope.totals = totals;
-			});
-
-			$http.get('/order-group/' + OrderGroup.id + '/bills').success(function (bills) {
-				$scope.bills = bills;
-			});
-		}).error(function () {
-			$ionicPopup.alert({
-				title: "Could not split bills"
-			});
-		});
-	}
-});
-
-app.controller('OrderBillCtrl', function ($scope, $http, OrderGroup, Bill, dataMatcher, $ionicPopup, $state, BillsService, $rootScope) {
-	$scope.group = OrderGroup;
-	$scope.bill = Bill;
-	$scope.amountItem = {};
-	$scope.orderItems = [];
-	$scope.BillsService = BillsService;
-
-	if (!Bill.id) {
-		$scope.newBill = true;
-		$http.post('/order-group/' + OrderGroup.id + '/bills').success(function (bill) {
-			$scope.bill = bill;
-
-			$scope.formatTotal();
-		});
-	}
-
-	BillsService.getTotals(OrderGroup, function (totals) {
-		$scope.totals = totals;
-	}, true);
-
-	$http.get('/config/payment-methods').success(function (pm) {
-		$scope.payment_methods = pm;
-	});
-
 	$scope.formatTotal = function () {
-		if (!$scope.bill.paid_amount) $scope.bill.paid_amount = null;
-
 		if (!$scope.bill.total) {
 			$scope.bill.totalFormatted = "0";
 			return;
@@ -156,7 +160,18 @@ app.controller('OrderBillCtrl', function ($scope, $http, OrderGroup, Bill, dataM
 		$scope.bill.totalFormatted = (Math.round($scope.bill.total * 100) / 100).toFixed(2)
 	}
 
-	$scope.formatTotal();
+	$scope.formatPaidTotal = function () {
+		var total = 0;
+		for (var i = 0; i < $scope.paid.length; i++) {
+			total += $scope.paid[i].amount;
+		}
+
+		$scope.totals.paid = total;
+		$scope.totals.paidTotal = Math.round(total * 100) / 100;
+		$scope.totals.paidFormatted = $scope.totals.paidTotal.toFixed(2);
+		$scope.totals.leftPay = Math.round(($scope.totals.total - $scope.totals.paidTotal) * 100) / 100;
+		$scope.totals.leftPayFormatted = $scope.totals.leftPay.toFixed(2)
+	}
 
 	$scope.applyPercentAmount = function (percent) {
 		if (percent == 0) {
@@ -181,179 +196,75 @@ app.controller('OrderBillCtrl', function ($scope, $http, OrderGroup, Bill, dataM
 					}
 				}]
   		}).then(function(percent) {
-  			$scope.amountItem.total = $scope.totals.leftPay * (percent / 100);
+  			$scope.bill.total = $scope.totals.leftPay * (percent / 100);
   		});
 		}
 
-		$scope.amountItem.total = $scope.totals.leftPay * (percent / 100);
-	}
-
-	$scope.setBillType = function (type) {
-		$scope.payFor = type;
-		$scope.bill.bill_type = type;
-
-		$scope.refreshBillItems();
+		$scope.bill.total = $scope.totals.leftPay * (percent / 100);
 	}
 
 	$scope.refreshBillItems = function () {
-		if ($scope.bill.bill_type != 'items') {
-			if ($scope.bill.bill_items) {
-				for (var i = 0; i < $scope.bill.bill_items.length; i++) {
-					if ($scope.bill.bill_items[i].order_item_id == null && $scope.bill.bill_items[i].item_name == '-') {
-						$scope.amountItem.total = $scope.bill.bill_items[i].item_price;
-					}
-				}
-			}
-
-			return;
-		}
-
 		$http.get('/order-group/' + OrderGroup.id + '/orders').success(function (orders) {
-			$http.get('/order-group/' + OrderGroup.id + '/bills').success(function (bills) {
-				// item ids billed for
-				var billedFor = [];
-				var toCheck = [];
-				bills.forEach(function (bill) {
-					if (!bill.bill_items) return;
+			$scope.orderItems = orders;
 
-					for (var i = 0; i < bill.bill_items.length; i++) {
-						if (bill.id == $scope.bill.id) {
-							toCheck.push(bill.bill_items[i].order_item_id);
-						} else {
-							billedFor.push(bill.bill_items[i].order_item_id);
-						}
-					}
-				});
+			$scope.bill.total = 0;
+			orders.forEach(function (order) {
+				order.type = dataMatcher.getOrderType(order.type_id);
 
-				$scope.orderItems = orders;
+				order.items.forEach(function (orderItem) {
+					// for (var i = 0; i < $scope.bill.bill_items)
 
-				orders.forEach(function (order) {
-					order.type = dataMatcher.getOrderType(order.type_id);
+					orderItem.item = dataMatcher.getItem(orderItem.item_id);
+					orderItem.total = orderItem.quantity * orderItem.item.price;
 
-					order.items.forEach(function (orderItem) {
-						orderItem.billedFor = false;
-						for (var i = 0; i < billedFor.length; i++) {
-							if (billedFor[i] == orderItem.id) {
-								orderItem.billedFor = true;
-							}
-						}
-
-						for (var i = 0; i < toCheck.length; i++) {
-							if (toCheck[i] == orderItem.id) {
-								orderItem.selected = true;
-							}
-						}
-
-						// if (!orderItem.billedFor && $scope.newBill) orderItem.selected = true;
-
-						orderItem.item = dataMatcher.getItem(orderItem.item_id);
-						orderItem.total = orderItem.quantity * orderItem.item.price;
-
-						orderItem.modifiers.forEach(function (modifier) {
-							modifier.group = dataMatcher.getModifierGroup(modifier.modifier_group_id);
-							modifier.modifier = dataMatcher.getModifier(modifier.modifier_group_id, modifier.modifier_id);
-							orderItem.total += orderItem.quantity * modifier.modifier.price;
-						});
+					orderItem.modifiers.forEach(function (modifier) {
+						modifier.group = dataMatcher.getModifierGroup(modifier.modifier_group_id);
+						modifier.modifier = dataMatcher.getModifier(modifier.modifier_group_id, modifier.modifier_id);
+						orderItem.total += orderItem.quantity * modifier.modifier.price;
 					});
 
-					$scope.checkOrderChecked(order);
+					$scope.bill.total += orderItem.total;
 				});
-
-				$scope.billItemsChanged();
-				if ($scope.newBill) $scope.saveBill();
 			});
 		});
-	}
-	$scope.refreshBillItems();
-
-	$scope.checkOrderChecked = function (order) {
-		order.allChecked = false;
-		var numChecked = 0;
-		var max = 0;
-		for (var i = 0; i < order.items.length; i++) {
-			if (!order.items[i].billedFor) max++;
-			if (order.items[i].selected) {
-				numChecked++;
-			}
-		}
-
-		order.allChecked = numChecked == max && max > 0;
-	}
-
-	$scope.selectAll = function (order) {
-		var select = true;
-		var numChecked = 0;
-		if (order.allChecked == true) select = false;
-
-		for (var i = 0; i < order.items.length; i++) {
-			if (order.items[i].billedFor) {
-				order.items[i].selected = false;
-				continue;
-			}
-
-			order.items[i].selected = select;
-			numChecked++;
-		}
-
-		order.allChecked = select;
-		if (numChecked == 0) {
-			order.allChecked = 0;
-		}
-	}
-
-	$scope.billItemsChanged = function () {
-		$scope.bill.total = 0;
-
-		$scope.orderItems.forEach(function (order) {
-			for (var i = 0; i < order.items.length; i++) {
-				if (order.items[i].selected != true) continue;
-
-				$scope.bill.total += order.items[i].total;
-			}
-		});
-
-		if ($scope.amountItem.total)
-			$scope.bill.total += $scope.amountItem.total;
-
-		if (!$scope.$$phase) $scope.$digest();
 	}
 
 	$scope.saveBill = function (cb) {
 		if (typeof cb != 'function') cb = function(){}
-		$scope.billItemsChanged();
 
-		var selected = []
+		var selected = [];
 		$scope.orderItems.forEach(function (item) {
 			for (var i = 0; i < item.items.length; i++) {
-				if (item.items[i].selected == true) {
-					var _item = item.items[i];
-					selected.push({
-						order_item_id: _item.id,
-						item_name: _item.item.name,
-						item_price: _item.total,
-						discount: 0
-					});
-				}
+				var _item = item.items[i];
+				selected.push({
+					order_item_id: _item.id,
+					item_name: _item.item.name,
+					item_price: _item.total,
+					discount: 0
+				});
 			}
 		});
 
-		if ($scope.bill.bill_type == 'amount') {
-			selected.push({
-				order_item_id: null,
-				item_name: '-',
-				item_price: $scope.amountItem.total,
-				discount: 0
-			});
-		}
-
 		var bill = JSON.parse(JSON.stringify($scope.bill));
-		if (!bill.paid_amount) bill.paid_amount = 0;
 		bill.bill_items = selected;
-		bill.payment_method_id = parseInt(bill.payment_method_id) || 0;
 
 		$http.put('/order-group/' + $scope.group.id + '/bill/' + $scope.bill.id, bill)
 		.success(function () {
-			cb();
+			async.each($scope.paid, function (pm, cb) {
+				if (pm.amount <= 0) return cb();
+
+				$http.put('/order-group/' + $scope.group.id + '/bill/' + $scope.bill.id + '/payment', pm).success(function () {
+					cb();
+				}).error(function () {
+					cb('err');
+				});
+			}, function (e) {
+				if (!e) return cb();
+
+				$ionicPopup.alert({
+					title: 'Could not save payment methods'
+				});
+			});
 		}).error(function () {
 			$ionicPopup.alert({
 				title: 'Could not save bill'
@@ -361,50 +272,23 @@ app.controller('OrderBillCtrl', function ($scope, $http, OrderGroup, Bill, dataM
 		})
 	}
 
-	$scope.markAsPaid = function () {
-		$scope.bill.paid_amount = $scope.bill.total;
-		$scope.saveBill(function () {
-			$state.transitionTo('orderBills', {
-				group_id: $state.params.group_id
-			});
-		});
-	}
-
 	$scope.printBill = function () {
-		$http.post('/order-group/' + $scope.group.id + '/bill/' + $scope.bill.id + '/print').success(function () {
-			$http.get('/order-group/' + $scope.group.id + '/bill/' + $scope.bill.id).success(function (bill) {
-				$scope.bill = bill;
-				$scope.formatTotal();
+		$scope.saveBill(function () {
+			$http.post('/order-group/' + $scope.group.id + '/bill/' + $scope.bill.id + '/print').success(function () {
 				$ionicPopup.alert({
 					title: 'Bill Printed!'
 				});
+			}).error(function (_, statusCode) {
+				if (statusCode == 503) {
+					$ionicPopup.alert({
+						title: 'No Receipt Printers Connected!'
+					})
+				} else {
+					$ionicPopup.alert({
+						title: 'Could not print bill'
+					});
+				}
 			});
-		}).error(function (_, statusCode) {
-			if (statusCode == 503) {
-				$ionicPopup.alert({
-					title: 'No Receipt Printers Connected!'
-				})
-			} else {
-				$ionicPopup.alert({
-					title: 'Could not print bill'
-				});
-			}
-		});
-	}
-
-	$scope.deleteBill = function () {
-		$http.delete('/order-group/' + $scope.group.id + '/bill/' + $scope.bill.id).success(function () {
-			$state.transitionTo('orderBills', {
-				group_id: $state.params.group_id
-			});
-		}).error(function () {
-			$ionicPopup.alert({
-				title: 'Bill could not be deleted'
-			});
-		});
-	}
-
-	$scope.setBillAmount = function () {
-		$scope.amountItem.total = $scope.totals.leftPay;
+		})
 	}
 });

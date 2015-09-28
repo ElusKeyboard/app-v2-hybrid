@@ -351,7 +351,7 @@ app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, d
 	});
 });
 
-app.service('OrderItemService', function ($ionicModal, $http, $rootScope, datapack, $ionicScrollDelegate) {
+app.service('OrderItemService', function ($ionicModal, $ionicLoading, $http, $rootScope, datapack, $ionicScrollDelegate) {
 	var self = this;
 	this.modal = null;
 	this.scope = $rootScope.$new();
@@ -383,7 +383,13 @@ app.service('OrderItemService', function ($ionicModal, $http, $rootScope, datapa
 			order_id: self.scope.order.id
 		}).success(function (order_item) {
 			self.parent.refresh(function () {
-				self.parent.showEditItem(order_item.id);
+				$ionicLoading.show({
+					template: 'Added ' + item.item.name
+				});
+				setTimeout(function () {
+					$ionicLoading.hide();
+				}, 250);
+				// self.parent.showEditItem(order_item.id);
 			});
 		}).error(function (err) {
 			$ionicPopup.alert({
