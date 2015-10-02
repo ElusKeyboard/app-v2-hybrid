@@ -1,0 +1,20 @@
+ion-view(view-title="Restaurant" cache-view="false")
+	ion-nav-buttons(side="primary")
+		button.button.back-button.button-clear(ui-sref="home" direction="backwards" nav-direction="back")
+			i.icon.ion-ios-arrow-back
+			|  Dashboard
+
+	ion-content
+		.row(style="padding: 0;")
+			.col(ng-controller="TablesCtrl" style="padding: 0; border-right: 1px solid #CCC;")
+				ion-scroll(style="height: calc(100vh - 44px);" zooming="false" direction="y")
+					include tables.content.jade
+			.col(ng-controller="OrdersCtrl" style="padding: 0; border-right: 1px solid #CCC;")
+				ion-scroll(style="height: calc(100vh - 44px);" zooming="false" direction="y")
+					include orders.content.jade
+			.col(ng-controller="TabletItemsCtrl" style="padding: 0; border-right: 1px solid #CCC;")
+				ion-scroll(style="height: calc(100vh - 44px);" zooming="false" direction="y")
+					ion-list
+						div(ng-repeat="category in categories" ng-init="category.open = false")
+							ion-item.item-divider(ng-if="!filter.item.name.length" ng-click="openCloseCategory(category)") {{ category.category.name }}
+							ion-item(ng-if="category.open || filter.item.name.length" ng-repeat="item in category.items | filter:filter" ng-click="addItem(category, item)") {{ item.item.name }}

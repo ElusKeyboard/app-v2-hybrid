@@ -14,24 +14,24 @@ app.service('BillsService', function ($http) {
 		console.log(self.bill_items);
 	});
 
-	this.getTotals = function (OrderGroup, cb, cache) {
+	this.getTotals = function (group, cb, cache) {
 		if (cache !== true) cache = false;
 
 		if (self.payment_methods.length == 0) {
 			$http.get('/config/payment-methods').success(function (pm) {
 				self.payment_methods = pm;
-				self._getTotals(OrderGroup, cb, cache);
+				self._getTotals(group, cb, cache);
 			});
 		} else {
-			self._getTotals(OrderGroup, cb, cache);
+			self._getTotals(group, cb, cache);
 		}
 	}
 
 	this.lastTotals = null;
-	this._getTotals = function (OrderGroup, cb, cache) {
-		if (cache && self.lastTotals != null && self.lastTotals.group_id == OrderGroup.id) return cb(self.lastTotals);
+	this._getTotals = function (group, cb, cache) {
+		if (cache && self.lastTotals != null && self.lastTotals.group_id == group.id) return cb(self.lastTotals);
 
-		$http.get('/order-group/' + OrderGroup.id + '/bills/totals').success(function (totals) {
+		$http.get('/order-group/' + group.id + '/bills/totals').success(function (totals) {
 			self.payment_methods.forEach(function (p) {
 				p.amount = 0;
 
@@ -49,7 +49,7 @@ app.service('BillsService', function ($http) {
 				totalPaid += totals.paid[i].paid_amount;
 			}
 
-			totals.group_id = OrderGroup.id;
+			totals.group_id = group.id;
 			totals.paidTotal = Math.round(totalPaid * 100) / 100;
 			totals.paidFormatted = totals.paidTotal.toFixed(2);
 			totals.total = Math.round(totals.total * 100) / 100;
@@ -65,8 +65,17 @@ app.service('BillsService', function ($http) {
 	return this;
 });
 
-app.controller('OrderBillsCtrl', function ($scope, $http, OrderGroup, dataMatcher, $ionicPopup, $state, BillsService, $rootScope) {
-	$scope.group = OrderGroup;
+var deps = ['$scope', '$http', 'dataMatcher', '$ionicPopup', '$state', '$rootScope', 'BillsService'];
+if (!window.oc_info.is_ipad) deps.push('OrderGroup');
+deps.push(OrderBillsCtrl);
+
+app.controller('OrderBillsCtrl', deps);
+
+function OrderBillsCtrl ($scope, $http, dataMatcher, $ionicPopup, $state, $rootScope, BillsService, OrderGroup) {
+	if (!window.oc_info.is_ipad) {
+		$scope.group = OrderGroup;
+	}
+
 	$scope.bill = null;
 	$scope.amountItem = {};
 	$scope.orderItems = [];
@@ -74,7 +83,7 @@ app.controller('OrderBillsCtrl', function ($scope, $http, OrderGroup, dataMatche
 	$scope.totals = {};
 
 	$scope.BillsService = BillsService;
-	BillsService.getTotals(OrderGroup, function (totals) {
+	BillsService.getTotals($scope.group, function (totals) {
 		$scope.totals = totals;
 	});
 
@@ -82,9 +91,9 @@ app.controller('OrderBillsCtrl', function ($scope, $http, OrderGroup, dataMatche
 		$scope.payment_methods = pm;
 	});
 
-	$http.get('/order-group/' + OrderGroup.id + '/bills').success(function (bills) {
+	$http.get('/order-group/' + $scope.group.id + '/bills').success(function (bills) {
 		if (bills.length == 0) {
-			$http.post('/order-group/' + OrderGroup.id + '/bills').success(function (bill) {
+			$http.post('/order-group/' + $scope.group.id + '/bills').success(function (bill) {
 				$scope.bill = bill;
 				for (var i = 0; i < $scope.payment_methods.length; i++) {
 					$scope.paid.push({
@@ -104,7 +113,7 @@ app.controller('OrderBillsCtrl', function ($scope, $http, OrderGroup, dataMatche
 		}
 
 		$scope.bill = bills[0];
-		$http.get('/order-group/' + OrderGroup.id + '/bill/' + $scope.bill.id + '/payment').success(function (payments) {
+		$http.get('/order-group/' + $scope.group.id + '/bill/' + $scope.bill.id + '/payment').success(function (payments) {
 			$scope.paid = payments;
 			for (var i = 0; i < $scope.payment_methods.length; i++) {
 				var found = null;
@@ -134,16 +143,22 @@ app.controller('OrderBillsCtrl', function ($scope, $http, OrderGroup, dataMatche
 
 		if (bills.length > 1) {
 			for (var i = 1; i < bills.length; i++) {
-				$http.delete('/order-group/' + OrderGroup.id + '/bill/' + bills[i].id);
+				$http.delete('/order-group/' + $scope.group.id + '/bill/' + bills[i].id);
 			}
 		}
 	});
 
 	$scope.clearTable = function () {
-		$http.post('/order-group/' + OrderGroup.id + '/clear').success(function () {
-			$state.go('tables', {}, {
-				direction: 'backwards'
-			})
+		$http.post('/order-group/' + $scope.group.id + '/clear').success(function () {
+			if (window.oc_info.is_ipad) {
+				$scope.hideModal();
+				$rootScope.$emit('tables.reload');
+				$rootScope.$emit('orders.clearTable');
+			} else {
+				$state.go('tables', {}, {
+					direction: 'backwards'
+				});
+			}
 		}).error(function () {
 			$ionicPopup.alert({
 				title: 'Could not clear table.'
@@ -204,7 +219,7 @@ app.controller('OrderBillsCtrl', function ($scope, $http, OrderGroup, dataMatche
 	}
 
 	$scope.refreshBillItems = function () {
-		$http.get('/order-group/' + OrderGroup.id + '/orders').success(function (orders) {
+		$http.get('/order-group/' + $scope.group.id + '/orders').success(function (orders) {
 			$scope.orderItems = orders;
 
 			$scope.bill.total = 0;
@@ -291,4 +306,4 @@ app.controller('OrderBillsCtrl', function ($scope, $http, OrderGroup, dataMatche
 			});
 		})
 	}
-});
+}

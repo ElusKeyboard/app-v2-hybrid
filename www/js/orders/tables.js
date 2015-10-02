@@ -1,6 +1,9 @@
 var app = angular.module('orderchef');
 
-app.controller('TablesCtrl', function ($scope, $http, $ionicPopover, $ionicPopup, $state, datapack) {
+app.controller('TablesCtrl', function ($scope, $rootScope, $http, $ionicPopover, $ionicPopup, $state, datapack) {
+	// for ipad view
+	$scope.selected_table_id = null;
+
 	var tableTypes = {};
 	for (var i = 0; i < datapack.data.tables.length; i++) {
 		var table = datapack.data.tables[i];
@@ -51,12 +54,27 @@ app.controller('TablesCtrl', function ($scope, $http, $ionicPopover, $ionicPopup
 
 	$scope.refresh();
 
+	$scope.showTable = function (table_id) {
+		if (window.oc_info.is_ipad) {
+			$scope.selected_table_id = table_id;
+			$scope.refresh();
+			$rootScope.$emit('tables.open', table_id);
+			return;
+		}
+
+		$state.go('orders', {
+			table_id: table_id
+		});
+	}
+
+	$rootScope.$on('tables.reload', function () {
+		$scope.refresh();
+	});
+
 	$scope.openTable = function (table) {
 		$http.get('/table/' + table.id + '/group').success(function () {
 			$scope.popover.hide();
-			$state.go('orders', {
-				table_id: table.id
-			});
+			$scope.showTable(table.id);
 		}).error(function () {
 			$ionicPopup.alert({
 				title: 'Cannot open Table'

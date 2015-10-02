@@ -7,45 +7,4 @@ ion-view(view-title="{{ table.name }}" cache-view="false")
 		button.button.button-balanced(ng-click="showAddOrder()") Add Course
 
 	ion-content.has-header
-		.card(ng-form="groupInfoForm" style="margin-bottom: 0;")
-			//- .item.item-divider
-			//- 	strong Customer Information
-			.item.item-input
-				span.input-label # Covers
-				input(type="number" ng-model="group.covers")
-		.row(style="padding-top: 0;" ng-if="!groupInfoForm.$pristine"): .col(style="padding-top: 0;"): button.button.button-block.button-balanced(ng-click="saveGroup(); groupInfoForm.$pristine = true;") Save
-
-		.row: .col: .button-bar
-			button.button.button-block.button-positive(ui-sref="orderBills({ group_id: group.id })") Bills
-			button.button.button-block Discounts
-
-		.row(ng-if="orderItems.length == 0"): .col
-			button.button.button-block.button-balanced(ng-click="showAddOrder()")
-				i.icon.ion-ios-plus-empty
-				| &nbsp;Add Course
-
-		//- .row: .col(style="text-align: center;"): h4 Total
-		//- br
-
-		.list(ng-repeat="order in orderItems")
-			.item.item-divider(ng-click="selectOrderGroup(order)")
-				i.icon.ion-clipboard.royal
-				span(ng-if="order.printed_at")
-					| &nbsp;
-					i.icon.ion-printer.positive(ng-if="order.printed_at")
-				| &nbsp; {{ order.type.name }}
-			.item.item-text-wrap(style="padding: 0;" ng-if="order.items.length > 0")
-				ion-list
-					ion-item(ng-repeat="item in order.items" ng-click="showEditItem(item.id)")
-						strong
-							span(ng-if="item.quantity > 1") {{ item.quantity }}x&nbsp;
-							| {{ item.item.name }}
-						strong(ng-if="!item.item") n/a
-						span.item-note £{{ (item.quantity * item.item.price).toFixed(2) }}
-						br
-						div(ng-repeat="modifier in item.modifiers")
-							| {{ modifier.group.name }} - {{ modifier.modifier.name }}
-							span.item-note £{{ (item.quantity * modifier.modifier.price).toFixed(2) }}
-			.row(ng-if="!order.printed_at"): .col: button.button.button-light.button-block(ng-click="showAddItem(order)")
-				i.icon.ion-ios-plus-empty
-				| &nbsp;Add Item
+		include orders.content.jade

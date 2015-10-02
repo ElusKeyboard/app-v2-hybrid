@@ -1,0 +1,89 @@
+
+<ion-view view-title="Restaurant" cache-view="false">
+  <ion-nav-buttons side="primary">
+    <button ui-sref="home" direction="backwards" nav-direction="back" class="button back-button button-clear"><i class="icon ion-ios-arrow-back"></i> Dashboard</button>
+  </ion-nav-buttons>
+  <ion-content>
+    <div style="padding: 0;" class="row">
+      <div ng-controller="TablesCtrl" style="padding: 0; border-right: 1px solid #CCC;" class="col">
+        <ion-scroll style="height: calc(100vh - 44px);" zooming="false" direction="y">
+          <div ng-repeat="table in openTables" ng-click="showTable(table.id)" direction="forward" class="card">
+            <div ng-class="{ 'item-calm': table.id == selected_table_id }" class="item item-divider">#{{ table.table_number }} - {{ table.name }}<small ng-if="table.covers">&nbsp;({{ table.covers }} cover<span ng-if="table.covers &gt; 1">s</span>)</small></div>
+            <div class="item item-text-wrap"><span ng-if="table.last_printed_order">Last printed {{ table.last_printed_order_formatted }}</span><small ng-if="!table.last_printed_order">Never Printed</small>
+              <div class="item-note">{{ table.printedOrders }} / {{ table.orders }}</div>
+            </div>
+          </div>
+          <div ng-if="openTables.length == 0" class="card">
+            <div style="text-align: center;" class="item item-text-wrap">No Open Tables</div>
+          </div>
+          <div class="padding">
+            <button ng-click="popover.show($event)" class="button button-balanced button-block">Open Table</button>
+          </div>
+        </ion-scroll>
+      </div>
+      <div ng-controller="OrdersCtrl" style="padding: 0; border-right: 1px solid #CCC;" class="col">
+        <ion-scroll style="height: calc(100vh - 44px);" zooming="false" direction="y">
+          <div ng-if="!group" class="card">
+            <div class="item text-center"><br/>
+              <h3>No table selected</h3><br/>
+            </div>
+          </div>
+          <div ng-if="group">
+            <div ng-form="groupInfoForm" style="margin-bottom: 0;" class="card">
+              <div class="item item-input"><span class="input-label"># Covers</span>
+                <input type="number" ng-model="group.covers"/>
+              </div>
+            </div>
+            <div style="padding-top: 0;" ng-if="!groupInfoForm.$pristine" class="row">
+              <div style="padding-top: 0;" class="col">
+                <button ng-click="saveGroup(); groupInfoForm.$pristine = true;" class="button button-block button-balanced">Save</button>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <div class="button-bar">
+                  <button ng-click="showBills()" class="button button-block button-positive">Bills</button>
+                </div>
+              </div>
+            </div>
+            <div ng-if="orderItems.length == 0" class="row">
+              <div class="col">
+                <button ng-click="showAddOrder()" class="button button-block button-balanced"><i class="icon ion-ios-plus-empty"></i>&nbsp;Add Course</button>
+              </div>
+            </div>
+            <div ng-repeat="order in orderItems" class="list">
+              <div ng-click="selectOrderGroup(order)" class="item item-divider"><i class="icon ion-clipboard royal"></i><span ng-if="order.printed_at">&nbsp;<i ng-if="order.printed_at" class="icon ion-printer positive"></i></span>&nbsp; {{ order.type.name }}</div>
+              <div style="padding: 0;" ng-if="order.items.length &gt; 0" class="item item-text-wrap">
+                <ion-list>
+                  <ion-item ng-repeat="item in order.items" ng-click="showEditItem(item.id)"><strong><span ng-if="item.quantity &gt; 1">{{ item.quantity }}x&nbsp;</span>{{ item.item.name }}</strong><strong ng-if="!item.item">n/a</strong><span class="item-note">£{{ (item.quantity * item.item.price).toFixed(2) }}</span><br/>
+                    <div ng-repeat="modifier in item.modifiers">{{ modifier.group.name }} - {{ modifier.modifier.name }}<span class="item-note">£{{ (item.quantity * modifier.modifier.price).toFixed(2) }}</span></div>
+                  </ion-item>
+                </ion-list>
+              </div>
+              <div ng-if="!order.printed_at" class="row">
+                <div class="col">
+                  <button ng-class="{ 'button-light': activeOrderID != order.id, 'button-calm': activeOrderID == order.id }" ng-click="showAddItem(order)" class="button button-light button-block"><i class="icon ion-ios-plus-empty"></i>&nbsp;Add Item</button>
+                </div>
+              </div>
+            </div>
+            <div ng-if="is_tablet &amp;&amp; orderItems.length &gt; 0" class="row">
+              <div class="col">
+                <button ng-click="showAddOrder()" class="button button-block button-balanced"><i class="icon ion-ios-plus-empty"></i>&nbsp;Add Course</button>
+              </div>
+            </div>
+          </div>
+        </ion-scroll>
+      </div>
+      <div ng-controller="TabletItemsCtrl" style="padding: 0; border-right: 1px solid #CCC;" class="col">
+        <ion-scroll style="height: calc(100vh - 44px);" zooming="false" direction="y">
+          <ion-list>
+            <div ng-repeat="category in categories" ng-init="category.open = false">
+              <ion-item ng-if="!filter.item.name.length" ng-click="openCloseCategory(category)" class="item-divider">{{ category.category.name }}</ion-item>
+              <ion-item ng-if="category.open || filter.item.name.length" ng-repeat="item in category.items | filter:filter" ng-click="addItem(category, item)">{{ item.item.name }}</ion-item>
+            </div>
+          </ion-list>
+        </ion-scroll>
+      </div>
+    </div>
+  </ion-content>
+</ion-view>

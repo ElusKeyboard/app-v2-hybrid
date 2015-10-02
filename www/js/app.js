@@ -1,5 +1,10 @@
 var app = angular.module('orderchef', ['ionic']);
 
+// window.oc_info.is_ipad
+window.oc_info = {
+	is_ipad: window.innerWidth >= 768
+}
+
 app.config(function ($httpProvider, $ionicConfigProvider) {
 	$ionicConfigProvider.views.swipeBackEnabled(false);
 
@@ -21,9 +26,10 @@ app.config(function ($httpProvider, $ionicConfigProvider) {
 	});
 });
 
-app.run(function($rootScope, $ionicPlatform, $state, $stateParams, datapack) {
+app.run(function($rootScope, $ionicPlatform, $state, $stateParams, $window, datapack) {
 	$rootScope.$state = $state;
 	$rootScope.$stateParams = $stateParams;
+	$rootScope.oc_info = window.oc_info;
 
 	$rootScope.venue_name = localStorage['venue_name'] || '';
 	$rootScope.ip_address = localStorage['setup_ip'] || '';

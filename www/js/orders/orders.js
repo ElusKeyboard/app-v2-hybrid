@@ -1,13 +1,26 @@
 var app = angular.module('orderchef');
 
-app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, datapack, dataMatcher, $ionicPopup, OrderItemService, $ionicActionSheet) {
+var deps = ['$scope', '$rootScope', '$state', '$http', '$ionicModal', '$ionicPopup', '$ionicLoading', '$ionicActionSheet', 'OrderItemService', 'datapack', 'dataMatcher'];
+if (!window.oc_info.is_ipad) deps.push('OrderGroup');
+
+deps.push(OrdersCtrl);
+
+app.controller('OrdersCtrl', deps);
+
+function OrdersCtrl ($scope, $rootScope, $state, $http, $ionicModal, $ionicPopup, $ionicLoading, $ionicActionSheet, OrderItemService, datapack, dataMatcher, OrderGroup) {
 	$scope.group = OrderGroup;
 	OrderItemService.parent = $scope;
+
+	if (window.oc_info.is_ipad) {
+		$scope.group = null
+		$scope.is_tablet = true;
+		$scope.activeOrderID = null;
+	}
 
 	$scope.refresh = function (cb) {
 		if (typeof cb != 'function') cb = function (){}
 
-		$http.get('/order-group/' + OrderGroup.id + '/orders').success(function (orders) {
+		$http.get('/order-group/' + $scope.group.id + '/orders').success(function (orders) {
 			$scope.orderItems = orders;
 
 			orders.forEach(function (order) {
@@ -29,15 +42,6 @@ app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, d
 				title: 'Cannot get orders!'
 			});
 		});
-	}
-
-	$scope.refresh();
-
-	for (var i = 0; i < datapack.data.tables.length; i++) {
-		if (datapack.data.tables[i].id == OrderGroup.table_id) {
-			$scope.table = datapack.data.tables[i];
-			break;
-		}
 	}
 
 	$scope.saveGroup = function () {
@@ -322,6 +326,11 @@ app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, d
 	}
 
 	$scope.showAddItem = function (order) {
+		if (window.oc_info.is_ipad) {
+			$scope.activeOrderID = order.id;
+			return;
+		}
+
 		OrderItemService.showModal(order);
 	}
 
@@ -331,25 +340,113 @@ app.controller('OrdersCtrl', function ($scope, $http, $ionicModal, OrderGroup, d
 	$scope.hideAddOrder = function () {
 		$scope.addOrderModal.hide();
 	}
+	$scope.findTableObject = function () {
+		for (var i = 0; i < datapack.data.tables.length; i++) {
+			if (datapack.data.tables[i].id == $scope.group.table_id) {
+				$scope.table = datapack.data.tables[i];
+				break;
+			}
+		}
+	}
 
+	$scope.showBills = function () {
+		if (window.oc_info.is_ipad) {
+			var scope = $rootScope.$new();
+			var modal = null;
+
+			scope.group = $scope.group;
+			scope.hideModal = function () {
+				modal.hide();
+			}
+
+			$ionicModal.fromTemplateUrl('views/orders/bills.modal.html', {
+				scope: scope,
+				animation: 'slide-in-up'
+			}).then(function (m) {
+				modal = m;
+				modal.show();
+			});
+			scope.$on('$destroy', function () {
+				modal.remove();
+			})
+
+			return;
+		}
+
+		$state.go('orderBills', { group_id: $scope.group.id });
+	}
+
+	if (!window.oc_info.is_ipad) {
+		$scope.refresh();
+		$scope.findTableObject();
+	} else {
+		$rootScope.$on('tables.open', function (ev, table_id) {
+			$http.get('/table/' + table_id + '/group')
+			.success(function (group) {
+				$scope.group = group;
+				$scope.refresh();
+				$scope.findTableObject();
+			}).error(function () {
+				$ionicPopup.alert({
+					title: 'Cannot get table orders!'
+				});
+			});
+		});
+
+		$rootScope.$on('items.add', function (ev, category, item) {
+			if (!$scope.activeOrderID) {
+				$ionicPopup.alert({
+					title: 'Select Order first!',
+					template: 'Click on "+ Add Item"'
+				});
+				return;
+			}
+
+			$http.post('/order/' + $scope.activeOrderID + '/items', {
+				item_id: item.item.id,
+				order_id: $scope.activeOrderID
+			}).success(function (order_item) {
+				$scope.refresh(function () {
+					$ionicLoading.show({
+						template: 'Added ' + item.item.name
+					});
+					setTimeout(function () {
+						$ionicLoading.hide();
+					}, 500);
+					// self.parent.showEditItem(order_item.id);
+				});
+			}).error(function (err) {
+				$ionicPopup.alert({
+					title: 'Cannot add item to order!',
+					template: err
+				});
+			});
+		});
+
+		$rootScope.$on('orders.clearTable', function () {
+			$scope.group = null
+			$scope.is_tablet = true;
+			$scope.activeOrderID = null;
+		});
+	}
+
+	// modals stuff
 	$scope.getItemModal = function () {
 		return $ionicModal.fromTemplateUrl('views/orders/itemModal.html', {
 			scope: $scope,
 			animation: 'slide-in-up'
 		});
 	}
-
 	$scope.getItemModal().then(function (modal) {
 		$scope.itemModal = modal;
 	});
-
 	$ionicModal.fromTemplateUrl('views/orders/addOrderModal.html', {
 		scope: $scope,
 		animation: 'slide-in-up'
 	}).then(function (modal) {
 		$scope.addOrderModal = modal;
 	});
-});
+};
 
 app.service('OrderItemService', function ($ionicModal, $ionicLoading, $http, $rootScope, datapack, $ionicScrollDelegate) {
 	var self = this;

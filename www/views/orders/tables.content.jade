@@ -1,0 +1,14 @@
+.card(ng-repeat="table in openTables" ng-click="showTable(table.id)" direction="forward")
+	.item.item-divider(ng-class="{ 'item-calm': table.id == selected_table_id }") \#{{ table.table_number }} - {{ table.name }}
+		small(ng-if="table.covers") &nbsp;({{ table.covers }} cover
+			span(ng-if="table.covers > 1") s
+			| )
+	.item.item-text-wrap
+		span(ng-if="table.last_printed_order") Last printed {{ table.last_printed_order_formatted }}
+		small(ng-if="!table.last_printed_order") Never Printed
+		.item-note {{ table.printedOrders }} / {{ table.orders }}
+
+.card(ng-if="openTables.length == 0")
+	.item.item-text-wrap(style="text-align: center;") No Open Tables
+
+.padding: button.button.button-balanced.button-block(ng-click="popover.show($event)") Open Table

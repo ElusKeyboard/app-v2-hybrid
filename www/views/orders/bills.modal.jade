@@ -1,0 +1,6 @@
+ion-modal-view
+	ion-header-bar
+		button.button(ng-click="hideModal()") Close
+		h1.title Bills
+	ion-content(ng-controller="OrderBillsCtrl")
+		include bills.content.jade

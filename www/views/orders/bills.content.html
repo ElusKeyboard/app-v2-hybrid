@@ -1,0 +1,44 @@
+
+<ion-list ng-repeat="order in orderItems">
+  <ion-item class="item-divider">{{ order.type.name }}</ion-item>
+  <ion-item ng-repeat="item in order.items" ng-class="{ strikethrough: item.deleted }">{{ item.item.name }}<span class="item-note">£{{ item.total.toFixed(2) }}</span></ion-item>
+</ion-list>
+<div ng-if="bill.bill_type.length &gt; 0">
+  <div class="row">
+    <div class="col">
+      <div class="button-bar">
+        <button ng-click="saveBill()" class="button button-block button-plain">Save</button>
+        <button ng-click="saveBill(printBill)" class="button button-block button-balanced">Save &amp; Print Bill</button>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <button ng-click="deleteBill()" class="button button-block button-assertive button-small">Write Off</button>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col">
+    <div class="button-bar">
+      <button ng-click="printBill()" class="button button-block button-plain">Print Bill</button>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <ion-item class="item-divider"><strong>Total paid</strong><span class="item-note">£{{ totals.paidFormatted }}</span></ion-item>
+  <ion-item ng-repeat="payment_method in paid track by $index" class="item-input"><span ng-click="payment_method.amount = totals.total; formatPaidTotal()" class="input-label">{{ payment_method.name }}</span>
+    <input type="number" step="any" ng-model="payment_method.amount" ng-change="formatPaidTotal()"/>
+  </ion-item>
+  <ion-item ng-if="totals.paidFormatted != totals.totalFormatted" class="item-divider"><span>Left to pay</span><span class="item-note assertive">£{{ totals.leftPayFormatted }}</span></ion-item>
+  <ion-item class="item-divider"><strong>Total</strong><span ng-class="{ assertive: totals.paidFormatted != totals.totalFormatted, balanced: totals.paidFormatted == totals.totalFormatted }" class="item-note">£{{ totals.totalFormatted }}</span></ion-item>
+</div>
+<div class="row">
+  <div class="col"><br/>
+    <p style="text-align: center;">Clear the table after the guests leave the table.</p>
+    <div class="button-bar">
+      <button ng-click="saveBill()" class="button button-block">Save</button>
+      <button ng-click="clearTable()" ng-disabled="totals.leftPay &gt; 0" nav-direction="back" class="button button-balanced button-block">Save &amp; Clear Table</button>
+    </div>
+  </div>
+</div>

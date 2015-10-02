@@ -1,6 +1,15 @@
 var app = angular.module('orderchef');
 
 app.config(function($stateProvider) {
+	if (window.oc_info.is_ipad) {
+		$stateProvider.state('tables', {
+			url: '/tables',
+			templateUrl: 'views/orders/tablet.html'
+		});
+
+		return;
+	}
+
 	$stateProvider
 	.state('tables', {
 		url: '/tables',

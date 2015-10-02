@@ -1,0 +1,46 @@
+ion-list(ng-repeat="order in orderItems")
+	ion-item.item-divider {{ order.type.name }}
+	//- ion-item.item-input(ng-repeat="item in order.items" ng-class="{ strikethrough: item.deleted }")
+	//- 	span.input-label {{ item.item.name }}
+	//- 	input(type="number" step="any" ng-model="item.total")
+	ion-item(ng-repeat="item in order.items" ng-class="{ strikethrough: item.deleted }") {{ item.item.name }}
+		span.item-note £{{ item.total.toFixed(2) }}
+
+//-.card
+	ion-item.item-divider Extras
+	ion-item(ng-repeat="item in BillsService.bill_items") {{ item.name }}
+		.item-note
+			span(ng-if="!item.is_percent") £
+			| {{ item.price.toFixed(2) }}
+			span(ng-if="item.is_percent") %
+
+div(ng-if="bill.bill_type.length > 0")
+	.row: .col: .button-bar
+		button.button.button-block.button-plain(ng-click="saveBill()") Save
+		button.button.button-block.button-balanced(ng-click="saveBill(printBill)") Save &amp; Print Bill
+	.row: .col
+		button.button.button-block.button-assertive.button-small(ng-click="deleteBill()") Write Off
+
+.row: .col: .button-bar
+	button.button.button-block.button-plain(ng-click="printBill()") Print Bill
+
+.card
+	ion-item.item-divider
+		strong Total paid
+		span.item-note £{{ totals.paidFormatted }}
+	ion-item.item-input(ng-repeat="payment_method in paid track by $index")
+		span.input-label(ng-click="payment_method.amount = totals.total; formatPaidTotal()") {{ payment_method.name }}
+		input(type="number" step="any" ng-model="payment_method.amount" ng-change="formatPaidTotal()")
+	ion-item.item-divider(ng-if="totals.paidFormatted != totals.totalFormatted")
+		span Left to pay
+		span.item-note.assertive £{{ totals.leftPayFormatted }}
+	ion-item.item-divider
+		strong Total
+		span.item-note(ng-class="{ assertive: totals.paidFormatted != totals.totalFormatted, balanced: totals.paidFormatted == totals.totalFormatted }") £{{ totals.totalFormatted }}
+
+.row: .col
+	br
+	p(style="text-align: center;") Clear the table after the guests leave the table.
+	.button-bar
+		button.button.button-block(ng-click="saveBill()") Save
+		button.button.button-balanced.button-block(ng-click="clearTable()" ng-disabled="totals.leftPay > 0" nav-direction="back") Save &amp; Clear Table
