@@ -56,6 +56,7 @@ function OrdersCtrl ($scope, $rootScope, $state, $http, $ionicModal, $ionicPopup
 		$http.post('/order-group/' + $scope.group.id + '/orders', {
 			type_id: order_type.id
 		}).success(function (order) {
+			$scope.activeOrderID = order.id;
 			$scope.addOrderModal.hide();
 			$scope.refresh();
 		}).error(function (err) {
@@ -350,6 +351,15 @@ function OrdersCtrl ($scope, $rootScope, $state, $http, $ionicModal, $ionicPopup
 	}
 
 	$scope.showBills = function () {
+		if ($scope.group.covers == 0 && (!$scope.orderItems || $scope.orderItems.length > 0)) {
+			$ionicPopup.alert({
+				title: 'Enter Cover information',
+				template: 'Select how many covers (guests)'
+			});
+
+			return;
+		}
+
 		if (window.oc_info.is_ipad) {
 			var scope = $rootScope.$new();
 			var modal = null;
@@ -380,10 +390,12 @@ function OrdersCtrl ($scope, $rootScope, $state, $http, $ionicModal, $ionicPopup
 		$scope.refresh();
 		$scope.findTableObject();
 	} else {
-		$rootScope.$on('tables.open', function (ev, table_id) {
+		var cleanup = [];
+		cleanup.push($rootScope.$on('tables.open', function (ev, table_id) {
 			$http.get('/table/' + table_id + '/group')
 			.success(function (group) {
 				$scope.group = group;
+				$scope.activeOrderID = null;
 				$scope.refresh();
 				$scope.findTableObject();
 			}).error(function () {
@@ -391,9 +403,9 @@ function OrdersCtrl ($scope, $rootScope, $state, $http, $ionicModal, $ionicPopup
 					title: 'Cannot get table orders!'
 				});
 			});
-		});
+		}));
 
-		$rootScope.$on('items.add', function (ev, category, item) {
+		cleanup.push($rootScope.$on('items.add', function (ev, category, item) {
 			if (!$scope.activeOrderID) {
 				$ionicPopup.alert({
 					title: 'Select Order first!',
@@ -421,13 +433,19 @@ function OrdersCtrl ($scope, $rootScope, $state, $http, $ionicModal, $ionicPopup
 					template: err
 				});
 			});
-		});
+		}));
 
-		$rootScope.$on('orders.clearTable', function () {
+		cleanup.push($rootScope.$on('orders.clearTable', function () {
 			$scope.group = null
 			$scope.is_tablet = true;
 			$scope.activeOrderID = null;
-		});
+		}));
+
+		$scope.$on('$destroy', function () {
+			cleanup.forEach(function (c) {
+				c();
+			});
+		})
 	}
 
 	// modals stuff
@@ -459,6 +477,10 @@ app.service('OrderItemService', function ($ionicModal, $ionicLoading, $http, $ro
 	}
 
 	this.scope.openCloseCategory = function (category) {
+		for (var i = 0; i < self.scope.categories.length; i++) {
+			self.scope.categories[i].open = false;
+		}
+
 		category.open = !category.open;
 		$ionicScrollDelegate.resize();
 	}
@@ -480,6 +502,7 @@ app.service('OrderItemService', function ($ionicModal, $ionicLoading, $http, $ro
 			order_id: self.scope.order.id
 		}).success(function (order_item) {
 			self.parent.refresh(function () {
+				$scope.activeOrderID = null;
 				$ionicLoading.show({
 					template: 'Added ' + item.item.name
 				});

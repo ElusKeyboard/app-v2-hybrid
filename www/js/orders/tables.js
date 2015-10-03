@@ -67,8 +67,11 @@ app.controller('TablesCtrl', function ($scope, $rootScope, $http, $ionicPopover,
 		});
 	}
 
-	$rootScope.$on('tables.reload', function () {
+	var tables_reload_cleanup = $rootScope.$on('tables.reload', function () {
 		$scope.refresh();
+	});
+	$scope.$on('$destroy', function () {
+		tables_reload_cleanup();
 	});
 
 	$scope.openTable = function (table) {

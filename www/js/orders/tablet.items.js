@@ -4,8 +4,13 @@ app.controller('TabletItemsCtrl', function ($scope, $rootScope, $http, $ionicMod
 	$scope.categories = OrderItemService.scope.categories;
 
 	$scope.openCloseCategory = function (category) {
-		category.open = !category.open;
-		$ionicScrollDelegate.resize();
+		var lastState = category.open;
+		for (var i = 0; i < $scope.categories.length; i++) {
+			$scope.categories[i].open = false;
+		}
+
+		category.open = !lastState;
+		$ionicScrollDelegate.$getByHandle('itemsScroll').resize();
 	}
 
 	$scope.addItem = function (category, item) {

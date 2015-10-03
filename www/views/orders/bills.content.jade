@@ -1,4 +1,4 @@
-ion-list(ng-repeat="order in orderItems")
+//-ion-list(ng-repeat="order in orderItems")
 	ion-item.item-divider {{ order.type.name }}
 	//- ion-item.item-input(ng-repeat="item in order.items" ng-class="{ strikethrough: item.deleted }")
 	//- 	span.input-label {{ item.item.name }}
@@ -14,15 +14,8 @@ ion-list(ng-repeat="order in orderItems")
 			| {{ item.price.toFixed(2) }}
 			span(ng-if="item.is_percent") %
 
-div(ng-if="bill.bill_type.length > 0")
-	.row: .col: .button-bar
-		button.button.button-block.button-plain(ng-click="saveBill()") Save
-		button.button.button-block.button-balanced(ng-click="saveBill(printBill)") Save &amp; Print Bill
-	.row: .col
-		button.button.button-block.button-assertive.button-small(ng-click="deleteBill()") Write Off
-
 .row: .col: .button-bar
-	button.button.button-block.button-plain(ng-click="printBill()") Print Bill
+	button.button.button-block.button-balanced(ng-click="printBill()") Print Bill
 
 .card
 	ion-item.item-divider

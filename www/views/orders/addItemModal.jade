@@ -4,7 +4,7 @@ ion-modal-view
 			i.icon.ion-ios-search.placeholder-icon
 			input(type="search" placeholder="Search Items" ng-model="filter.item.name")
 		button.button.button-clear(ng-click="filter.item.name = ''"): i.icon.ion-ios-close-empty
-	ion-content(delegate-handle="availableTicketScroll")
+	ion-content
 		ion-list
 			div(ng-repeat="category in categories" ng-init="category.open = false")
 				ion-item.item-divider(ng-if="!filter.item.name.length" ng-click="openCloseCategory(category)") {{ category.category.name }}

@@ -9,25 +9,10 @@
       <ion-item class="item-divider">{{ order.type.name }}</ion-item>
       <ion-item ng-repeat="item in order.items" ng-class="{ strikethrough: item.deleted }">{{ item.item.name }}<span class="item-note">£{{ item.total.toFixed(2) }}</span></ion-item>
     </ion-list>
-    <div ng-if="bill.bill_type.length &gt; 0">
-      <div class="row">
-        <div class="col">
-          <div class="button-bar">
-            <button ng-click="saveBill()" class="button button-block button-plain">Save</button>
-            <button ng-click="saveBill(printBill)" class="button button-block button-balanced">Save &amp; Print Bill</button>
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col">
-          <button ng-click="deleteBill()" class="button button-block button-assertive button-small">Write Off</button>
-        </div>
-      </div>
-    </div>
     <div class="row">
       <div class="col">
         <div class="button-bar">
-          <button ng-click="printBill()" class="button button-block button-plain">Print Bill</button>
+          <button ng-click="printBill()" class="button button-block button-balanced">Print Bill</button>
         </div>
       </div>
     </div>

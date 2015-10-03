@@ -75,10 +75,10 @@
         </ion-scroll>
       </div>
       <div ng-controller="TabletItemsCtrl" style="padding: 0; border-right: 1px solid #CCC;" class="col">
-        <ion-scroll style="height: calc(100vh - 44px);" zooming="false" direction="y">
+        <ion-scroll style="height: calc(100vh - 44px);" zooming="false" direction="y" delegate-handle="itemsScroll">
           <ion-list>
             <div ng-repeat="category in categories" ng-init="category.open = false">
-              <ion-item ng-if="!filter.item.name.length" ng-click="openCloseCategory(category)" class="item-divider">{{ category.category.name }}</ion-item>
+              <ion-item ng-if="!filter.item.name.length" ng-click="openCloseCategory(category)" style="padding-top: 12px; padding-bottom: 12px;" ng-class="{ 'item-royal': category.open }" class="item-divider">{{ category.category.name }}</ion-item>
               <ion-item ng-if="category.open || filter.item.name.length" ng-repeat="item in category.items | filter:filter" ng-click="addItem(category, item)">{{ item.item.name }}</ion-item>
             </div>
           </ion-list>

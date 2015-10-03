@@ -6,7 +6,7 @@
     </label>
     <button ng-click="filter.item.name = ''" class="button button-clear"><i class="icon ion-ios-close-empty"></i></button>
   </ion-header-bar>
-  <ion-content delegate-handle="availableTicketScroll">
+  <ion-content>
     <ion-list>
       <div ng-repeat="category in categories" ng-init="category.open = false">
         <ion-item ng-if="!filter.item.name.length" ng-click="openCloseCategory(category)" class="item-divider">{{ category.category.name }}</ion-item>
