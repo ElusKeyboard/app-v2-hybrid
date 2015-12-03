@@ -1,21 +1,15 @@
-//-ion-list(ng-repeat="order in orderItems")
-	ion-item.item-divider {{ order.type.name }}
-	//- ion-item.item-input(ng-repeat="item in order.items" ng-class="{ strikethrough: item.deleted }")
-	//- 	span.input-label {{ item.item.name }}
-	//- 	input(type="number" step="any" ng-model="item.total")
-	ion-item(ng-repeat="item in order.items" ng-class="{ strikethrough: item.deleted }") {{ item.item.name }}
-		span.item-note £{{ item.total.toFixed(2) }}
+.row: .col: .button-bar
+	button.button.button-block.button-balanced(ng-click="printBill()") Print Bill
 
-//-.card
+.card
 	ion-item.item-divider Extras
-	ion-item(ng-repeat="item in BillsService.bill_items") {{ item.name }}
+	ion-item(ng-repeat="item in BillsService.bill_items")
+		span {{ item.name }}
+		button.button.button-stable.button-small(style="min-height: 18px; line-height: 20px;") +
 		.item-note
 			span(ng-if="!item.is_percent") £
 			| {{ item.price.toFixed(2) }}
 			span(ng-if="item.is_percent") %
-
-.row: .col: .button-bar
-	button.button.button-block.button-balanced(ng-click="printBill()") Print Bill
 
 .card
 	ion-item.item-divider

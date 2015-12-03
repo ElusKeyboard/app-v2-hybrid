@@ -5,16 +5,19 @@
     <h1 class="title">Bills</h1>
   </ion-header-bar>
   <ion-content ng-controller="OrderBillsCtrl">
-    <ion-list ng-repeat="order in orderItems">
-      <ion-item class="item-divider">{{ order.type.name }}</ion-item>
-      <ion-item ng-repeat="item in order.items" ng-class="{ strikethrough: item.deleted }">{{ item.item.name }}<span class="item-note">£{{ item.total.toFixed(2) }}</span></ion-item>
-    </ion-list>
     <div class="row">
       <div class="col">
         <div class="button-bar">
           <button ng-click="printBill()" class="button button-block button-balanced">Print Bill</button>
         </div>
       </div>
+    </div>
+    <div class="card">
+      <ion-item class="item-divider">Extras</ion-item>
+      <ion-item ng-repeat="item in BillsService.bill_items"><span>{{ item.name }}</span>
+        <button style="min-height: 18px; line-height: 20px;" class="button button-stable button-small">+</button>
+        <div class="item-note"><span ng-if="!item.is_percent">£</span>{{ item.price.toFixed(2) }}<span ng-if="item.is_percent">%</span></div>
+      </ion-item>
     </div>
     <div class="card">
       <ion-item class="item-divider"><strong>Total paid</strong><span class="item-note">£{{ totals.paidFormatted }}</span></ion-item>
