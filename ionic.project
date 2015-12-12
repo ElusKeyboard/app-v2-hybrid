@@ -1,6 +1,6 @@
 {
-  "name": "ionic_test",
-  "app_id": "e3d6e96d",
+  "name": "OrderChef",
+  "app_id": "71b0d99c",
   "gulpStartupTasks": [
     "sass",
     "watch"
