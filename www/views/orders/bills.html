@@ -13,14 +13,23 @@
     </div>
     <div class="card">
       <ion-item class="item-divider">Extras</ion-item>
-      <ion-item ng-repeat="item in BillsService.bill_items"><span>{{ item.name }}</span>
-        <button style="min-height: 18px; line-height: 20px;" class="button button-stable button-small">+</button>
-        <div class="item-note"><span ng-if="!item.is_percent">£</span>{{ item.price.toFixed(2) }}<span ng-if="item.is_percent">%</span></div>
+      <ion-item ng-repeat="item in BillsService.bill_items" style="padding: 8px 16px;">
+        <div style="padding: 0;" class="row">
+          <div style="padding: 10px 0;" class="col">
+            <h2 style="font-size: 16px; color: #444;">{{ item.name }}</h2>
+          </div>
+          <div class="col text-right"><span style="padding: 5px 0; display: inline-block;"><span ng-if="!item.is_percent">£</span>{{ item.price.toFixed(2) }}<span ng-if="item.is_percent">%</span>&nbsp;</span>
+            <button ng-click="setBillExtraQuantity(item, 0)" ng-if="item.quantity == 1 &amp;&amp; item.is_percent" class="button button-assertive button-small">Remove</button>
+            <button ng-click="setBillExtraQuantity(item, 1)" ng-if="item.quantity == 0 &amp;&amp; item.is_percent" class="button button-stable button-small">Add</button>
+            <button ng-click="setBillExtraQuantity(item, item.quantity-1)" ng-if="!item.is_percent" class="button button-stable button-small">-</button><span style="padding: 5px 0; margin-left: 3px;" ng-if="!item.is_percent">&nbsp;{{item.quantity}}&nbsp;</span>
+            <button ng-click="setBillExtraQuantity(item, item.quantity+1)" ng-if="!item.is_percent" class="button button-stable button-small">+</button>
+          </div>
+        </div>
       </ion-item>
     </div>
     <div class="card">
       <ion-item class="item-divider"><strong>Total paid</strong><span class="item-note">£{{ totals.paidFormatted }}</span></ion-item>
-      <ion-item ng-repeat="payment_method in paid track by $index" class="item-input"><span ng-click="payment_method.amount = totals.total; formatPaidTotal()" class="input-label">{{ payment_method.name }}</span>
+      <ion-item ng-repeat="payment_method in paid track by $index" class="item-input"><span ng-click="setAmountForPaymentMethod(payment_method)" class="input-label">{{ payment_method.name }}</span>
         <input type="number" step="any" ng-model="payment_method.amount" ng-change="formatPaidTotal()"/>
       </ion-item>
       <ion-item ng-if="totals.paidFormatted != totals.totalFormatted" class="item-divider"><span>Left to pay</span><span class="item-note assertive">£{{ totals.leftPayFormatted }}</span></ion-item>

@@ -3,20 +3,28 @@
 
 .card
 	ion-item.item-divider Extras
-	ion-item(ng-repeat="item in BillsService.bill_items")
-		span {{ item.name }}
-		button.button.button-stable.button-small(style="min-height: 18px; line-height: 20px;") +
-		.item-note
-			span(ng-if="!item.is_percent") £
-			| {{ item.price.toFixed(2) }}
-			span(ng-if="item.is_percent") %
+	ion-item(ng-repeat="item in BillsService.bill_items" style="padding: 8px 16px;")
+		.row(style="padding: 0;")
+			.col(style="padding: 10px 0;")
+				h2(style="font-size: 16px; color: #444;") {{ item.name }}
+			.col.text-right
+				span(style="padding: 5px 0; display: inline-block;")
+					span(ng-if="!item.is_percent") £
+					| {{ item.price.toFixed(2) }}
+					span(ng-if="item.is_percent") %
+					| &nbsp;
+				button.button.button-assertive.button-small(ng-click="setBillExtraQuantity(item, 0)" ng-if="item.quantity == 1 && item.is_percent") Remove
+				button.button.button-stable.button-small(ng-click="setBillExtraQuantity(item, 1)" ng-if="item.quantity == 0 && item.is_percent") Add
+				button.button.button-stable.button-small(ng-click="setBillExtraQuantity(item, item.quantity-1)" ng-if="!item.is_percent") -
+				span(style="padding: 5px 0; margin-left: 3px;" ng-if="!item.is_percent") &nbsp;{{item.quantity}}&nbsp;
+				button.button.button-stable.button-small(ng-click="setBillExtraQuantity(item, item.quantity+1)" ng-if="!item.is_percent") +
 
 .card
 	ion-item.item-divider
 		strong Total paid
 		span.item-note £{{ totals.paidFormatted }}
 	ion-item.item-input(ng-repeat="payment_method in paid track by $index")
-		span.input-label(ng-click="payment_method.amount = totals.total; formatPaidTotal()") {{ payment_method.name }}
+		span.input-label(ng-click="setAmountForPaymentMethod(payment_method)") {{ payment_method.name }}
 		input(type="number" step="any" ng-model="payment_method.amount" ng-change="formatPaidTotal()")
 	ion-item.item-divider(ng-if="totals.paidFormatted != totals.totalFormatted")
 		span Left to pay

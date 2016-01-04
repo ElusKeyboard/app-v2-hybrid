@@ -11,7 +11,6 @@ app.service('BillsService', function ($http) {
 
 	$http.get('/config/bill-items').success(function (items) {
 		self.bill_items = items;
-		console.log(self.bill_items);
 	});
 
 	this.getTotals = function (group, cb, cache) {
@@ -91,62 +90,96 @@ function OrderBillsCtrl ($scope, $http, dataMatcher, $ionicPopup, $state, $rootS
 		$scope.payment_methods = pm;
 	});
 
-	$http.get('/order-group/' + $scope.group.id + '/bills').success(function (bills) {
-		if (bills.length == 0) {
-			$http.post('/order-group/' + $scope.group.id + '/bills').success(function (bill) {
-				$scope.bill = bill;
-				for (var i = 0; i < $scope.payment_methods.length; i++) {
-					$scope.paid.push({
-						payment_method_id: $scope.payment_methods[i].id,
-						bill_id: $scope.bill.id,
-						amount: 0,
-						name: $scope.payment_methods[i].name
-					});
-				}
+	$scope.refresh = function () {
+		$http.get('/order-group/' + $scope.group.id + '/bills').success(function (bills) {
+			if (bills.length == 0) {
+				$http.post('/order-group/' + $scope.group.id + '/bills').success(function (bill) {
+					$scope.bill = bill;
+					for (var i = 0; i < $scope.payment_methods.length; i++) {
+						$scope.paid.push({
+							payment_method_id: $scope.payment_methods[i].id,
+							bill_id: $scope.bill.id,
+							amount: 0,
+							name: $scope.payment_methods[i].name
+						});
+					}
 
-				$scope.formatTotal();
-				$scope.formatPaidTotal();
-				$scope.refreshBillItems();
-			});
+					$scope.formatTotal();
+					$scope.formatPaidTotal();
+					$scope.refreshBillItems();
+				});
 
-			return;
-		}
+				return;
+			}
 
-		$scope.bill = bills[0];
-		$http.get('/order-group/' + $scope.group.id + '/bill/' + $scope.bill.id + '/payment').success(function (payments) {
-			$scope.paid = payments;
-			for (var i = 0; i < $scope.payment_methods.length; i++) {
-				var found = null;
-				for (var x = 0; x < $scope.paid.length; x++) {
-					if ($scope.paid[x].payment_method_id == $scope.payment_methods[i].id) {
-						found = x;
-						break;
+			$scope.bill = bills[0];
+			var hasServiceCharge = false;
+			var serviceChargeItem = null;
+			for (var i = 0; i < BillsService.bill_items.length; i++) {
+				var bi = BillsService.bill_items[i];
+				bi.quantity = 0;
+
+				for (var x = 0; x < $scope.bill.bill_extras.length; x++) {
+					if (bi.id == $scope.bill.bill_extras[x].bill_item_id) {
+						bi.quantity = $scope.bill.bill_extras[x].quantity;
 					}
 				}
 
-				if (found === null) {
-					$scope.paid.push({
-						payment_method_id: $scope.payment_methods[i].id,
-						bill_id: $scope.bill.id,
-						amount: 0,
-						name: $scope.payment_methods[i].name
-					});
-				} else {
-					$scope.paid[found].name = $scope.payment_methods[i].name;
+				if (bi.name.toLowerCase().indexOf('service charge') > -1) {
+					hasServiceCharge = bi.quantity > 0;
+					serviceChargeItem = bi;
 				}
 			}
 
-			$scope.formatPaidTotal();
-		});
-		$scope.formatTotal();
-		$scope.refreshBillItems();
-
-		if (bills.length > 1) {
-			for (var i = 1; i < bills.length; i++) {
-				$http.delete('/order-group/' + $scope.group.id + '/bill/' + bills[i].id);
+			if (!hasServiceCharge && $scope.group.covers >= 5) {
+				// add service charge
+				serviceChargeItem.quantity = 1;
+				$http.put('/order-group/' + $scope.group.id + '/bill/' + $scope.bill.id + '/extras/' + serviceChargeItem.id, {
+					quantity: 1,
+					bill_item_id: serviceChargeItem.id
+				}).success(function () {
+					BillsService.getTotals($scope.group, function (totals) {
+						$scope.totals = totals;
+						$scope.formatPaidTotal();
+					});
+				});
 			}
-		}
-	});
+
+			$http.get('/order-group/' + $scope.group.id + '/bill/' + $scope.bill.id + '/payment').success(function (payments) {
+				$scope.paid = payments;
+				for (var i = 0; i < $scope.payment_methods.length; i++) {
+					var found = null;
+					for (var x = 0; x < $scope.paid.length; x++) {
+						if ($scope.paid[x].payment_method_id == $scope.payment_methods[i].id) {
+							found = x;
+							break;
+						}
+					}
+
+					if (found === null) {
+						$scope.paid.push({
+							payment_method_id: $scope.payment_methods[i].id,
+							bill_id: $scope.bill.id,
+							amount: 0,
+							name: $scope.payment_methods[i].name
+						});
+					} else {
+						$scope.paid[found].name = $scope.payment_methods[i].name;
+					}
+				}
+
+				$scope.formatPaidTotal();
+			});
+			$scope.formatTotal();
+			$scope.refreshBillItems();
+
+			if (bills.length > 1) {
+				for (var i = 1; i < bills.length; i++) {
+					$http.delete('/order-group/' + $scope.group.id + '/bill/' + bills[i].id);
+				}
+			}
+		});
+	}
 
 	$scope.clearTable = function () {
 		$http.post('/order-group/' + $scope.group.id + '/clear').success(function () {
@@ -186,6 +219,37 @@ function OrderBillsCtrl ($scope, $http, dataMatcher, $ionicPopup, $state, $rootS
 		$scope.totals.paidFormatted = $scope.totals.paidTotal.toFixed(2);
 		$scope.totals.leftPay = Math.round(($scope.totals.total - $scope.totals.paidTotal) * 100) / 100;
 		$scope.totals.leftPayFormatted = $scope.totals.leftPay.toFixed(2)
+	}
+
+	$scope.setAmountForPaymentMethod = function (pm) {
+		var amountTotal = 0;
+		for (var i = 0; i < $scope.paid.length; i++) {
+			if ($scope.paid[i].amount > 0) {
+				amountTotal += $scope.paid[i].amount;
+			}
+		}
+
+		if ($scope.totals.total - amountTotal <= 0) return;
+
+		pm.amount = $scope.totals.total - amountTotal;
+		$scope.formatPaidTotal();
+	}
+
+	$scope.setBillExtraQuantity = function (item, quantity) {
+		if (quantity <= 0) quantity = 0;
+		item.quantity = quantity;
+
+		$http.put('/order-group/' + $scope.group.id + '/bill/' + $scope.bill.id + '/extras/' + item.id, {
+			quantity: quantity,
+			bill_item_id: item.id
+		}).success(function () {
+			BillsService.getTotals($scope.group, function (totals) {
+				$scope.totals = totals;
+				$scope.formatPaidTotal();
+			});
+		});
+
+		$http.delete();
 	}
 
 	$scope.applyPercentAmount = function (percent) {
@@ -306,4 +370,6 @@ function OrderBillsCtrl ($scope, $http, dataMatcher, $ionicPopup, $state, $rootS
 			});
 		})
 	}
+
+	$scope.refresh();
 }
