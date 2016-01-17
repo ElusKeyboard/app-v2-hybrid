@@ -1,4 +1,4 @@
-.card(ng-repeat="table in openTables" ng-click="showTable(table.id)" direction="forward")
+.card(ng-repeat="table in openTables | orderBy:'table_number'" ng-click="showTable(table.id)" direction="forward")
 	.item.item-divider(ng-class="{ 'item-calm': table.id == selected_table_id }") \#{{ table.table_number }} - {{ table.name }}
 		small.pull-right(ng-if="table.covers") &nbsp;({{ table.covers }} cover
 			span(ng-if="table.covers > 1") s

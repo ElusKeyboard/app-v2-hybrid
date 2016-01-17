@@ -7,7 +7,7 @@
     <div style="padding: 0;" class="row">
       <div ng-controller="TablesCtrl" style="padding: 0; border-right: 1px solid #CCC;" class="col">
         <ion-scroll style="height: calc(100vh - 44px);" zooming="false" direction="y">
-          <div ng-repeat="table in openTables" ng-click="showTable(table.id)" direction="forward" class="card">
+          <div ng-repeat="table in openTables | orderBy:'table_number'" ng-click="showTable(table.id)" direction="forward" class="card">
             <div ng-class="{ 'item-calm': table.id == selected_table_id }" class="item item-divider">#{{ table.table_number }} - {{ table.name }}<small ng-if="table.covers" class="pull-right">&nbsp;({{ table.covers }} cover<span ng-if="table.covers &gt; 1">s</span>)</small></div>
             <div class="item item-text-wrap"><span ng-if="table.last_printed_order">Last printed {{ table.last_printed_order_formatted }}</span><small ng-if="!table.last_printed_order">Never Printed</small>
               <div class="item-note">{{ table.printedOrders }} / {{ table.orders }}</div>
