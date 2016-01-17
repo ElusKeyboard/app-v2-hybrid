@@ -14,8 +14,9 @@
     </div>
     <div ng-if="group">
       <div ng-form="groupInfoForm" style="margin-bottom: 0;" class="card">
-        <div class="item item-input"><span class="input-label"># Covers</span>
-          <input type="number" ng-model="group.covers"/>
+        <div class="item item-input">
+          <label for="covers" class="input-label"># Covers</label>
+          <input id="covers" type="number" ng-model="group.covers"/>
         </div>
       </div>
       <div style="padding-top: 0;" ng-if="!groupInfoForm.$pristine" class="row">

@@ -7,7 +7,7 @@
     <ion-list>
       <div ng-repeat="section in tableTypes">
         <ion-item class="item-divider">{{ section.type.name }}</ion-item>
-        <ion-item ng-repeat="table in section.tables" ng-click="openTable(table)">{{ table.name }}</ion-item>
+        <ion-item ng-repeat="table in section.tables | orderBy:'table_number'" ng-click="openTable(table)">{{ table.name }}</ion-item>
       </div>
     </ion-list>
   </ion-content>

@@ -5,7 +5,7 @@
   </ion-nav-buttons>
   <ion-content>
     <div ng-repeat="table in openTables" ng-click="showTable(table.id)" direction="forward" class="card">
-      <div ng-class="{ 'item-calm': table.id == selected_table_id }" class="item item-divider">#{{ table.table_number }} - {{ table.name }}<small ng-if="table.covers">&nbsp;({{ table.covers }} cover<span ng-if="table.covers &gt; 1">s</span>)</small></div>
+      <div ng-class="{ 'item-calm': table.id == selected_table_id }" class="item item-divider">#{{ table.table_number }} - {{ table.name }}<small ng-if="table.covers" class="pull-right">&nbsp;({{ table.covers }} cover<span ng-if="table.covers &gt; 1">s</span>)</small></div>
       <div class="item item-text-wrap"><span ng-if="table.last_printed_order">Last printed {{ table.last_printed_order_formatted }}</span><small ng-if="!table.last_printed_order">Never Printed</small>
         <div class="item-note">{{ table.printedOrders }} / {{ table.orders }}</div>
       </div>
@@ -14,7 +14,15 @@
       <div style="text-align: center;" class="item item-text-wrap">No Open Tables</div>
     </div>
     <div class="padding">
-      <button ng-click="popover.show($event)" class="button button-balanced button-block">Open Table</button>
+      <div class="card">
+        <form ng-submit="showOpenTable(undefined, data.tableNumber)">
+          <div class="item item-input">
+            <label for="tableNumber" class="input-label">Open by Table Number</label>
+            <input id="tableNumber" type="search" ng-model="data.tableNumber" placeholder="Enter table #"/>
+          </div>
+        </form>
+      </div>
+      <button ng-click="showOpenTable($event, data.tableNumber)" class="button button-balanced button-block">Open Table<span ng-if="data.tableNumber">&nbsp;#{{ data.tableNumber }}</span></button>
     </div>
   </ion-content>
 </ion-view>

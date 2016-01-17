@@ -226,8 +226,11 @@ function OrdersCtrl ($scope, $rootScope, $state, $http, $ionicModal, $ionicPopup
 
 		for (var ii = 0; ii < $scope.editedItem.modifiers.length; ii++) {
 			var mi = $scope.editedItem.modifiers[ii];
+			console.log('mapping', mi, ii);
 			if (mi.modifier_group_id == modifierGroup.id) {
 				chain.push([$http.delete, '/modifier/' + mi.id]);
+				console.log('deleting', ii);
+				// $scope.editedItem.modifiers.splice(ii--, 1);
 			}
 		}
 
@@ -357,6 +360,8 @@ function OrdersCtrl ($scope, $rootScope, $state, $http, $ionicModal, $ionicPopup
 				template: 'Select how many covers (guests)'
 			});
 
+			$('#covers').focus()
+
 			return;
 		}
 
@@ -452,7 +457,9 @@ function OrdersCtrl ($scope, $rootScope, $state, $http, $ionicModal, $ionicPopup
 	$scope.getItemModal = function () {
 		return $ionicModal.fromTemplateUrl('views/orders/itemModal.html', {
 			scope: $scope,
-			animation: 'slide-in-up'
+			animation: 'slide-in-up',
+			backdropClickToClose: false,
+			hardwareBackButtonClose: false
 		});
 	}
 	$scope.getItemModal().then(function (modal) {
@@ -502,7 +509,7 @@ app.service('OrderItemService', function ($ionicModal, $ionicLoading, $http, $ro
 			order_id: self.scope.order.id
 		}).success(function (order_item) {
 			self.parent.refresh(function () {
-				$scope.activeOrderID = null;
+				self.scope.activeOrderID = null;
 				$ionicLoading.show({
 					template: 'Added ' + item.item.name
 				});

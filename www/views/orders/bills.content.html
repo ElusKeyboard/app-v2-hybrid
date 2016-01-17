@@ -27,8 +27,9 @@
   <ion-item ng-repeat="payment_method in paid track by $index" class="item-input"><span ng-click="setAmountForPaymentMethod(payment_method)" class="input-label">{{ payment_method.name }}</span>
     <input type="number" step="any" ng-model="payment_method.amount" ng-change="formatPaidTotal()"/>
   </ion-item>
-  <ion-item ng-if="totals.paidFormatted != totals.totalFormatted" class="item-divider"><span>Left to pay</span><span class="item-note assertive">£{{ totals.leftPayFormatted }}</span></ion-item>
-  <ion-item class="item-divider"><strong>Total</strong><span ng-class="{ assertive: totals.paidFormatted != totals.totalFormatted, balanced: totals.paidFormatted == totals.totalFormatted }" class="item-note">£{{ totals.totalFormatted }}</span></ion-item>
+  <ion-item ng-if="totals.paid &lt; totals.total" class="item-divider"><span>Left to pay</span><span class="item-note assertive">£{{ totals.leftPayFormatted }}</span></ion-item>
+  <ion-item class="item-divider"><strong>Total</strong><span ng-class="{ assertive: totals.paid &lt; totals.total, balanced: totals.paid &gt;= totals.total }" class="item-note">£{{ totals.totalFormatted }}</span></ion-item>
+  <ion-item ng-if="totals.paid &gt; totals.total" class="item-divider"><strong>Change</strong><span class="item-note balanced">£{{ totals.paid - totals.total | currency:"" }}</span></ion-item>
 </div>
 <div class="row">
   <div class="col"><br/>

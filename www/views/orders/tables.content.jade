@@ -1,6 +1,6 @@
 .card(ng-repeat="table in openTables" ng-click="showTable(table.id)" direction="forward")
 	.item.item-divider(ng-class="{ 'item-calm': table.id == selected_table_id }") \#{{ table.table_number }} - {{ table.name }}
-		small(ng-if="table.covers") &nbsp;({{ table.covers }} cover
+		small.pull-right(ng-if="table.covers") &nbsp;({{ table.covers }} cover
 			span(ng-if="table.covers > 1") s
 			| )
 	.item.item-text-wrap
@@ -11,4 +11,10 @@
 .card(ng-if="openTables.length == 0")
 	.item.item-text-wrap(style="text-align: center;") No Open Tables
 
-.padding: button.button.button-balanced.button-block(ng-click="popover.show($event)") Open Table
+.padding
+	.card: form(ng-submit="showOpenTable(undefined, data.tableNumber)")
+		.item.item-input
+			label(for="tableNumber").input-label Open by Table Number
+			input#tableNumber(type="search" ng-model="data.tableNumber" placeholder="Enter table #")
+	button.button.button-balanced.button-block(ng-click="showOpenTable($event, data.tableNumber)") Open Table
+		span(ng-if="data.tableNumber") &nbsp;\#{{ data.tableNumber }}

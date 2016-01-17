@@ -5,4 +5,4 @@ ion-popover-view
 		ion-list
 			div(ng-repeat="section in tableTypes")
 				ion-item.item-divider {{ section.type.name }}
-				ion-item(ng-repeat="table in section.tables" ng-click="openTable(table)") {{ table.name }}
+				ion-item(ng-repeat="table in section.tables | orderBy:'table_number'" ng-click="openTable(table)") {{ table.name }}

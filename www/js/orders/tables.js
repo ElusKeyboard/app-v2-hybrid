@@ -3,6 +3,8 @@ var app = angular.module('orderchef');
 app.controller('TablesCtrl', function ($scope, $rootScope, $http, $ionicPopover, $ionicPopup, $state, datapack) {
 	// for ipad view
 	$scope.selected_table_id = null;
+	$scope.data = {}
+	$scope.data.tableNumber = '';
 
 	var tableTypes = {};
 	for (var i = 0; i < datapack.data.tables.length; i++) {
@@ -84,4 +86,23 @@ app.controller('TablesCtrl', function ($scope, $rootScope, $http, $ionicPopover,
 			});
 		});
 	}
+
+	$scope.showOpenTable = function (event, tableNumber) {
+		if(tableNumber) {
+			$scope.data.tableNumber = '';
+			for (var i = 0; i < datapack.data.tables.length; i++) {
+				var table = datapack.data.tables[i];
+				if (table.table_number.toLowerCase() == tableNumber.toLowerCase()) {
+					$scope.openTable(table)
+					return;
+				}
+			}
+			$ionicPopup.alert({
+				title: 'Table #'+tableNumber+' not found'
+			});
+			return;
+		}
+		$scope.popover.show(event);
+	}
+
 });

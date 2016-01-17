@@ -9,8 +9,8 @@ div(ng-if="group")
 		//- .item.item-divider
 		//- 	strong Customer Information
 		.item.item-input
-			span.input-label # Covers
-			input(type="number" ng-model="group.covers")
+			label(for="covers").input-label # Covers
+			input#covers(type="number" ng-model="group.covers")
 	.row(style="padding-top: 0;" ng-if="!groupInfoForm.$pristine"): .col(style="padding-top: 0;"): button.button.button-block.button-balanced(ng-click="saveGroup(); groupInfoForm.$pristine = true;") Save
 
 	.row: .col: .button-bar

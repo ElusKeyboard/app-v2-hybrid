@@ -26,12 +26,15 @@
 	ion-item.item-input(ng-repeat="payment_method in paid track by $index")
 		span.input-label(ng-click="setAmountForPaymentMethod(payment_method)") {{ payment_method.name }}
 		input(type="number" step="any" ng-model="payment_method.amount" ng-change="formatPaidTotal()")
-	ion-item.item-divider(ng-if="totals.paidFormatted != totals.totalFormatted")
+	ion-item.item-divider(ng-if="totals.paid < totals.total")
 		span Left to pay
 		span.item-note.assertive £{{ totals.leftPayFormatted }}
 	ion-item.item-divider
 		strong Total
-		span.item-note(ng-class="{ assertive: totals.paidFormatted != totals.totalFormatted, balanced: totals.paidFormatted == totals.totalFormatted }") £{{ totals.totalFormatted }}
+		span.item-note(ng-class="{ assertive: totals.paid < totals.total, balanced: totals.paid >= totals.total }") £{{ totals.totalFormatted }}
+	ion-item.item-divider(ng-if="totals.paid > totals.total")
+		strong Change
+		span.item-note.balanced £{{ totals.paid - totals.total | currency:"" }}
 
 .row: .col
 	br

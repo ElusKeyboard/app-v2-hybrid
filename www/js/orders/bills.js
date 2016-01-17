@@ -248,8 +248,6 @@ function OrderBillsCtrl ($scope, $http, dataMatcher, $ionicPopup, $state, $rootS
 				$scope.formatPaidTotal();
 			});
 		});
-
-		$http.delete();
 	}
 
 	$scope.applyPercentAmount = function (percent) {
