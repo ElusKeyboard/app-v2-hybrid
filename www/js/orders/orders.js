@@ -226,10 +226,8 @@ function OrdersCtrl ($scope, $rootScope, $state, $http, $ionicModal, $ionicPopup
 
 		for (var ii = 0; ii < $scope.editedItem.modifiers.length; ii++) {
 			var mi = $scope.editedItem.modifiers[ii];
-			console.log('mapping', mi, ii);
 			if (mi.modifier_group_id == modifierGroup.id) {
 				chain.push([$http.delete, '/modifier/' + mi.id]);
-				console.log('deleting', ii);
 				// $scope.editedItem.modifiers.splice(ii--, 1);
 			}
 		}
