@@ -10,7 +10,7 @@ ion-modal-view
 				span.input-label Quantity
 				input(placeholder="Quantity" type="number" required min="1" ng-model="editedItem.quantity")
 
-		.row: .col: h4 Modifiers
+		.row(ng-if="editedItem.item.modifier_objects.length > 0"): .col: h4 Modifiers
 
 		ion-list
 			div(ng-repeat="modifier_group in editedItem.item.modifier_objects")
