@@ -26,7 +26,7 @@ app.config(function ($httpProvider, $ionicConfigProvider) {
 	});
 });
 
-app.run(function($rootScope, $ionicPlatform, $state, $stateParams, $window, datapack) {
+app.run(function($rootScope, $ionicPlatform, $state, $stateParams, $window, datapack, $cordovaSplashscreen) {
 	$rootScope.$state = $state;
 	$rootScope.$stateParams = $stateParams;
 	$rootScope.oc_info = window.oc_info;
