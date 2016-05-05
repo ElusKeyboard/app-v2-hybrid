@@ -1,0 +1,17 @@
+
+<ion-view view-title="Dashboard">
+  <ion-content>
+    <div ng-if="!update.updating" class="card">
+      <div class="item item-divider">Functions</div>
+      <ion-item ui-sref="tables" nav-direction="forward" class="item-icon-right">Restaurant<i class="icon ion-ios-arrow-right"></i></ion-item>
+      <ion-item ui-sref="delivery" class="item-icon-right">Delivery<i class="icon ion-ios-arrow-right"></i></ion-item>
+      <ion-item ui-sref="delivery" class="item-icon-right">Takeaway<i class="icon ion-ios-arrow-right"></i></ion-item>
+    </div>
+    <div ng-if="!update.updating" class="card">
+      <ion-item ng-click="openConfig()" class="item-icon-left"><i class="icon ion-ios-cog-outline"></i>Settings &amp; Reports</ion-item>
+    </div>
+    <div ng-if="update.updating" class="card">
+      <ion-item>Update in progress: {{ update.progress }}%</ion-item>
+    </div>
+  </ion-content>
+</ion-view>

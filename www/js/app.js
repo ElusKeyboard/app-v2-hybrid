@@ -8,6 +8,7 @@ window.oc_info = {
 app.config(function ($httpProvider, $ionicConfigProvider) {
 	$ionicConfigProvider.views.swipeBackEnabled(false);
 
+	$httpProvider.defaults.timeout = 5000;
 	$httpProvider.interceptors.push(function ($q) {
 		return {
 			'request': function (config) {
@@ -26,7 +27,7 @@ app.config(function ($httpProvider, $ionicConfigProvider) {
 	});
 });
 
-app.run(function($rootScope, $ionicPlatform, $state, $stateParams, $window, datapack, $cordovaSplashscreen) {
+app.run(function($rootScope, $ionicPlatform, $state, $stateParams, $window, datapack) {
 	$rootScope.$state = $state;
 	$rootScope.$stateParams = $stateParams;
 	$rootScope.oc_info = window.oc_info;
@@ -83,11 +84,9 @@ app.service('datapack', function ($q, $http, $ionicLoading) {
 			localStorage['datapack'] = JSON.stringify(data);
 
 			$ionicLoading.hide();
-
 			d.resolve();
 		}).error(function () {
 			$ionicLoading.hide();
-
 			d.reject();
 		});
 

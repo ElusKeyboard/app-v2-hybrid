@@ -1,0 +1,10 @@
+
+<div ng-controller="SetupLoadingCtrl">
+  <h3>Setup</h3>
+  <div class="list">
+    <label class="item item-input">
+      <input type="url" placeholder="IP Address" ng-model="ip_address" required="required"/>
+    </label>
+    <button type="button" ng-click="setup(ip_address)" class="button button-block button-positive">Set Up</button>
+  </div>
+</div>

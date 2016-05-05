@@ -1,6 +1,6 @@
 ion-view(view-title="Dashboard")
 	ion-content
-		.card
+		.card(ng-if="!update.updating")
 			.item.item-divider Functions
 			ion-item.item-icon-right(ui-sref="tables" nav-direction="forward") Restaurant
 				i.icon.ion-ios-arrow-right
@@ -9,7 +9,11 @@ ion-view(view-title="Dashboard")
 			ion-item.item-icon-right(ui-sref="delivery") Takeaway
 				i.icon.ion-ios-arrow-right
 
-		.card
+		.card(ng-if="!update.updating")
 			ion-item.item-icon-left(ng-click="openConfig()")
 				i.icon.ion-ios-cog-outline
 				| Settings &amp; Reports
+
+		.card(ng-if="update.updating")
+			ion-item
+				| Update in progress: {{ update.progress }}%

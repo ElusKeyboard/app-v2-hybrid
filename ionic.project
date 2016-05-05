@@ -1,12 +1,4 @@
 {
-  "name": "OrderChef",
-  "app_id": "71b0d99c",
-  "gulpStartupTasks": [
-    "sass",
-    "watch"
-  ],
-  "watchPatterns": [
-    "www/**/*",
-    "!www/lib/**/*"
-  ]
+  "name": "orderchef-app",
+  "app_id": "71b0d99c"
 }
