@@ -12,7 +12,7 @@
         <input placeholder="Quantity" type="number" required="required" min="1" ng-model="editedItem.quantity"/>
       </label>
     </ion-list>
-    <div class="row">
+    <div ng-if="editedItem.item.modifier_objects.length &gt; 0" class="row">
       <div class="col">
         <h4>Modifiers</h4>
       </div>
