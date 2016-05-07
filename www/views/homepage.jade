@@ -13,7 +13,10 @@ ion-view(view-title="Dashboard")
 			ion-item.item-icon-left(ng-click="openConfig()")
 				i.icon.ion-ios-cog-outline
 				| Settings &amp; Reports
+			ion-item.item-icon-left(ng-click="checkForUpdates()")
+				i.icon.ion-ios-cloud-download-outline
+				| Check for Update
 
 		.card(ng-if="update.updating")
 			ion-item
-				| Update in progress: {{ update.progress }}%
+				| Update: {{ update.progress }}%

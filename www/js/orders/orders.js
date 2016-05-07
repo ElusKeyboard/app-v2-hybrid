@@ -482,11 +482,15 @@ app.service('OrderItemService', function ($ionicModal, $ionicLoading, $http, $ro
 	}
 
 	this.scope.openCloseCategory = function (category) {
+		var wasOpen = false;
 		for (var i = 0; i < self.scope.categories.length; i++) {
+			if (self.scope.categories[i] == category) wasOpen = self.scope.categories[i].open;
 			self.scope.categories[i].open = false;
 		}
 
-		category.open = !category.open;
+		if (!wasOpen) {
+			category.open = !category.open;
+		}
 		$ionicScrollDelegate.resize();
 	}
 	this.scope.categories = [];

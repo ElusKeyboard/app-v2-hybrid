@@ -25,10 +25,6 @@
     "ionic-plugin-deploy"
   ],
   "cordovaPlatforms": [
-    {
-      "platform": "ios",
-      "version": "4.0.0",
-      "locator": "ios@4.0.0"
-    }
+    "ios"
   ]
 }

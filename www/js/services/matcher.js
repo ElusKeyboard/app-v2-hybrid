@@ -36,4 +36,4 @@ app.service('dataMatcher', function (datapack) {
 			return findById(datapack.data.modifiers, id);
 		}
 	}
-})
+});

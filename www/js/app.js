@@ -38,9 +38,13 @@ app.run(function($rootScope, $ionicPlatform, $state, $stateParams, $window, data
 	$rootScope.datapack = datapack;
 
 	$ionicPlatform.ready(function() {
-		if (!$rootScope.is_setup || datapack.data == null || !datapack.data.last_refreshed || (new Date(datapack.data.last_refreshed)).getTime() - Date.now() > 86400) {
-			$state.transitionTo('setup');
-		}
+		setTimeout(function () {
+			if (!$rootScope.is_setup || datapack.data == null || !datapack.data.last_refreshed || (new Date(datapack.data.last_refreshed)).getTime() - Date.now() > 86400) {
+				$state.go('setup');
+			} else {
+				$state.go('home');
+			}
+		}, 100);
 
 		// Hide the accessory bar by default
 		if (window.cordova && window.cordova.plugins.Keyboard) {
@@ -54,39 +58,30 @@ app.run(function($rootScope, $ionicPlatform, $state, $stateParams, $window, data
 	});
 });
 
-app.service('datapack', function ($q, $http, $ionicLoading) {
+app.service('datapack', function ($q, $http) {
 	var self = this;
 
 	try {
 		this.data = JSON.parse(localStorage['datapack']);
 		if (!this.data || typeof this.data != 'object') throw Error();
-	} catch (e) {
+	} catch (_) {
 		this.data = null;
 	}
 
 	this.update = function () {
-		$ionicLoading.show({
-			template: 'Loading Cache..'
-		});
-
 		var d = $q.defer();
 
 		$http.get('/datapack').success(function (data) {
 			if (typeof data != 'object') {
-				$ionicLoading.hide();
 				self.data = null;
-
 				return d.reject();
 			}
 
 			self.data = data;
 			self.data.last_refreshed = Date.now();
 			localStorage['datapack'] = JSON.stringify(data);
-
-			$ionicLoading.hide();
 			d.resolve();
 		}).error(function () {
-			$ionicLoading.hide();
 			d.reject();
 		});
 

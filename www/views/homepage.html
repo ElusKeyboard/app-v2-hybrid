@@ -9,9 +9,10 @@
     </div>
     <div ng-if="!update.updating" class="card">
       <ion-item ng-click="openConfig()" class="item-icon-left"><i class="icon ion-ios-cog-outline"></i>Settings &amp; Reports</ion-item>
+      <ion-item ng-click="checkForUpdates()" class="item-icon-left"><i class="icon ion-ios-cloud-download-outline"></i>Check for Update</ion-item>
     </div>
     <div ng-if="update.updating" class="card">
-      <ion-item>Update in progress: {{ update.progress }}%</ion-item>
+      <ion-item>Update: {{ update.progress }}%</ion-item>
     </div>
   </ion-content>
 </ion-view>

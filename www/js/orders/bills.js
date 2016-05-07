@@ -64,13 +64,13 @@ app.service('BillsService', function ($http) {
 	return this;
 });
 
-var deps = ['$scope', '$http', 'dataMatcher', '$ionicPopup', '$state', '$rootScope', 'BillsService'];
+var deps = ['$scope', '$http', 'dataMatcher', '$ionicPopup', '$state', '$rootScope', 'BillsService', '$ionicHistory'];
 if (!window.oc_info.is_ipad) deps.push('OrderGroup');
 deps.push(OrderBillsCtrl);
 
 app.controller('OrderBillsCtrl', deps);
 
-function OrderBillsCtrl ($scope, $http, dataMatcher, $ionicPopup, $state, $rootScope, BillsService, OrderGroup) {
+function OrderBillsCtrl ($scope, $http, dataMatcher, $ionicPopup, $state, $rootScope, BillsService, $ionicHistory, OrderGroup) {
 	if (!window.oc_info.is_ipad) {
 		$scope.group = OrderGroup;
 	}
@@ -188,9 +188,7 @@ function OrderBillsCtrl ($scope, $http, dataMatcher, $ionicPopup, $state, $rootS
 				$rootScope.$emit('tables.reload');
 				$rootScope.$emit('orders.clearTable');
 			} else {
-				$state.go('tables', {}, {
-					direction: 'backwards'
-				});
+				$ionicHistory.goBack(-2);
 			}
 		}).error(function () {
 			$ionicPopup.alert({

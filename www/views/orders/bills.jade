@@ -1,8 +1,3 @@
-ion-view(view-title="Order Bills" cache-view="false")
-	ion-nav-buttons(side="primary")
-		button.button.back-button.button-clear(ui-sref="orders({ table_id: group.table_id })" direction="backwards")
-			i.icon.ion-ios-arrow-back
-			|  Order
-
+ion-view(view-title="Order Bills")
 	ion-content
 		include bills.content.jade

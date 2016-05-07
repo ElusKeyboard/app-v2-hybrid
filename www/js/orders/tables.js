@@ -34,7 +34,7 @@ app.controller('TablesCtrl', function ($scope, $rootScope, $http, $ionicPopover,
 
 	$scope.refresh = function () {
 		$http.get('/tables/open')
-		.success(function(data) {
+		.success(function (data) {
 			$scope.openTables = data;
 
 			for (var i = 0; i < data.length; i++) {
@@ -69,12 +69,6 @@ app.controller('TablesCtrl', function ($scope, $rootScope, $http, $ionicPopover,
 		});
 	}
 
-	var tables_reload_cleanup = $rootScope.$on('tables.reload', function () {
-		$scope.refresh();
-	});
-	$scope.$on('$destroy', function () {
-		tables_reload_cleanup();
-	});
 
 	$scope.openTable = function (table) {
 		$http.get('/table/' + table.id + '/group').success(function () {
@@ -105,4 +99,17 @@ app.controller('TablesCtrl', function ($scope, $rootScope, $http, $ionicPopover,
 		$scope.popover.show(event);
 	}
 
+	var tables_reload_cleanup = $rootScope.$on('tables.reload', function () {
+		$scope.refresh();
+	});
+	var stateChangeCallback = $rootScope.$on('$stateChangeStart', function (event, toState, toParams, fromState, fromParams, options) {
+		if (toState.name == 'tables') {
+			$scope.refresh();
+		}
+	});
+
+	$scope.$on('$destroy', function () {
+		tables_reload_cleanup();
+		stateChangeCallback();
+	});
 });
